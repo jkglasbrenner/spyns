@@ -1,0 +1,30 @@
+---
+name: ising-model-py
+channels:
+  - defaults
+  - jkglasbrenner
+dependencies:
+  - autopep8
+  - click
+  - cython
+  - flake8
+  - ipython
+  - jedi
+  - jupyter
+  - numpy
+  - matplotlib
+  - pandas
+  - pyhamcrest
+  - pylint
+  - pytest
+  - python=3.7.0
+  - rope
+  - ruamel_yaml
+  - scipy
+  - sphinx
+  - sphinx_rtd_theme
+  - yapf
+  - pip:
+      - pip==18.0
+      - pydocstyle
+...
