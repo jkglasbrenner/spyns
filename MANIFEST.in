@@ -1,6 +1,7 @@
 include README.rst LICENSE
 
 graft docs
+graft tests
 
 global-exclude *.py[co]
 
