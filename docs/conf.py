@@ -43,6 +43,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx_autodoc_typehints',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -173,6 +174,7 @@ texinfo_documents = [
 
 # -- Options for autodoc extension -------------------------------------------
 
+autoclass_content = "both"
 autodoc_member_order = "bysource"
 autosummary_generate = True
 

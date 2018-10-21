@@ -196,6 +196,10 @@ tmtags
 Session.vim
 tags
 
+# vscode
+*.code-workspace
+.vscode/*
+
 # xcode
 *.mode1v3
 *.mode2v3
@@ -387,3 +391,7 @@ vignettes/*.pdf
 !.readthedocs.yml
 !.style.yapf
 !.travis.yml
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

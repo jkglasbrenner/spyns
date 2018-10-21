@@ -24,6 +24,7 @@ CLEAN_FILES			=	build/													\
 						*_cache/												\
 						docs/_build/ 											\
 						dist/													\
+						.pytest_cache/											\
 						*.egg-info/
 
 define makefile_help
@@ -38,6 +39,7 @@ define makefile_help
 	@echo '   make docs                           generate documentation             '
 	@echo '   make env                            create conda venv and install deps '
 	@echo '   make sdist                          create a source distribution       '
+	@echo '   make test                           run unit tests                     '
 	@echo '                                                                          '
 endef
 
@@ -78,5 +80,8 @@ env :
 
 sdist :
 	$(call run_setup_py,sdist)
+
+test :
+	$(call run_setup_py,test)
 
 .PHONY : help build clean develop docs env
