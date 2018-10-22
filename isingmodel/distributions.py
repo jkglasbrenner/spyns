@@ -1,42 +1,40 @@
 # -*- coding: utf-8 -*-
 
+from dataclasses import dataclass
 from typing import Tuple, Union
 
-import attr
 import numpy as np
 
 
-@attr.s(slots=True)
+@dataclass
 class BinaryLattice(object):
     """Structural information and simulation state assuming a simple square lattice.
 
     :ivar dimensions: Number of sites along x and y dimensions of square lattice.
-    :ivar number_sites: Total sites in the simulation.
-    :ivar state: Simulation state.
     """
-    dimensions: Tuple[int, int] = attr.ib()
-    number_sites: int = attr.ib(init=False)
-    state: np.ndarray = attr.ib(init=False)
 
-    @dimensions.validator
-    def limit_dimensions(self, attribute, value):
-        """Enforce two-dimensional simulation."""
-        if len(value) != 2:
-            raise ValueError("Only two-dimensional lattices are supported.")
+    dimensions: Tuple[int, int]
+    __slots__ = ["dimensions"]
 
-    def __attrs_post_init__(self):
-        """Initialize ``number_sites`` and ``state`` attributes using ``dimensions``."""
-        self.number_sites = np.prod(self.dimensions)
-        self.state = self._initialize_state()
+    @property
+    def number_sites(self):
+        """Total sites in the simulation."""
+        return np.prod(self.dimensions)
 
-    def _initialize_state(self):
-        """Internal method used to randomize states on binary lattice."""
+    def sample_random_state(self):
+        """Generate sample of random states on the binary lattice."""
         return np.random.choice(a=[-1, 1], size=self.dimensions, replace=True)
 
-    def get_neighbors_states(self, site_index, neighborhood="Neumann") -> np.array:
+    def get_neighbors_states(
+        self,
+        site_index: Union[Tuple[int, int], np.ndarray],
+        state: np.ndarray,
+        neighborhood="Neumann",
+    ) -> np.array:
         """Get the states of a site's neighbors.
 
         :param site_index: Indices for site whose neighbor states you want to query.
+        :param state: Array of lattice spins.
         :param neighborhood: Controls the number of neighbors returned, defaults to
             "Neumann"
         :return: Array of neighbor states.
@@ -46,7 +44,7 @@ class BinaryLattice(object):
             neighborhood=neighborhood,
         )
 
-        return self.state[neighbor_indices[:, 0], neighbor_indices[:, 1]]
+        return state[neighbor_indices[:, 0], neighbor_indices[:, 1]]
 
     def _get_neighbor_indices(
         self,
@@ -105,8 +103,7 @@ class BinaryLattice(object):
 
 
 def proposal_distribution(energy_difference: float, temperature: float) -> float:
-    """Compute proposal distribution for a given energy difference and simulation
-    temperature.
+    """Compute proposal distribution for energy difference and simulation temperature.
 
     :param energy_difference: Energy difference for the trial sample.
     :param temperature: Temperature of the simulation.

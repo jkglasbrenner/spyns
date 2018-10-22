@@ -17,15 +17,20 @@ def metropolis(lattice: BinaryLattice, data: SimulationData) -> None:
     """
     site_index: Tuple[int, int] = metropolis_pick_site(data=data)
     energy_difference: float = isingmodel.model.ising_test_flip(
-        site_index=site_index, lattice=lattice, data=data
+        site_index=site_index,
+        lattice=lattice,
+        data=data,
     )
     accept_state: bool = metropolis_accept_or_reject(
-        temperature=data.parameters.temperature, energy_difference=energy_difference
+        temperature=data.parameters.temperature,
+        energy_difference=energy_difference,
     )
     if accept_state:
         metropolis_update_state(
-            lattice=lattice, data=data, site_index=site_index,
-            energy_difference=energy_difference
+            lattice=lattice,
+            data=data,
+            site_index=site_index,
+            energy_difference=energy_difference,
         )
 
 
@@ -73,6 +78,6 @@ def metropolis_update_state(
     :param site_index: Indices for randomly chosen site.
     :param energy_difference: Energy difference for the trial spin flip.
     """
-    lattice.state[site_index] *= -1
-    data.state["energy"] += energy_difference
-    data.state["magnetization"] += 2 * lattice.state[site_index]
+    data.state[site_index] *= -1
+    data.estimators.energy_1st_moment += energy_difference
+    data.estimators.magnetization_1st_moment += 2 * data.state[site_index]

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from isingmodel.distributions import BinaryLattice
 from isingmodel.data import SimulationData
+from isingmodel.distributions import BinaryLattice
 import isingmodel
 
 

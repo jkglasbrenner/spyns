@@ -16,7 +16,10 @@ def simulation(parameters: SimulationParameters) -> SimulationData:
     np.random.seed(parameters.seed)
 
     lattice: BinaryLattice = BinaryLattice(parameters.dimensions)
-    data: SimulationData = isingmodel.data.setup_containers(parameters=parameters)
+    data: SimulationData = isingmodel.data.setup_containers(
+        parameters=parameters,
+        state=lattice.sample_random_state(),
+    )
 
     pre_simulation(
         lattice=lattice,
@@ -82,7 +85,8 @@ def post_simulation(
     :param data: Data container for the simulation.
     """
     isingmodel.data.write_trace_to_disk(data=data)
-    print(f"Energy = {data.estimators['E_1st_moment'][0] / lattice.number_sites}")
+    print(f"Energy = {data.estimators.energy_1st_moment / lattice.number_sites}")
     print(
-        f"Magnetization = {data.estimators['Mag_1st_moment'][0] / lattice.number_sites}"
+        "Magnetization = "
+        f"{data.estimators.magnetization_1st_moment / lattice.number_sites}"
     )
