@@ -35,8 +35,11 @@ def ising_save_full_state(lattice: BinaryLattice, data: SimulationData) -> None:
     :param lattice: Structural information and simulation state.
     :param data: Data container for the simulation.
     """
-    data.state["energy"] = ising_total_energy(lattice=lattice, data=data)
-    data.state["magnetization"] = ising_total_magnetization(lattice=lattice)
+    data.estimators.energy = ising_total_energy(
+        lattice=lattice,
+        data=data,
+    )
+    data.estimators.magnetization = ising_total_magnetization(data=data)
 
 
 def ising_total_energy(lattice: BinaryLattice, data: SimulationData) -> float:
@@ -62,13 +65,13 @@ def ising_total_energy(lattice: BinaryLattice, data: SimulationData) -> float:
     return total_energy / 2.0
 
 
-def ising_total_magnetization(lattice: BinaryLattice) -> float:
+def ising_total_magnetization(data: SimulationData) -> float:
     """Compute the total magnetization estimator for the lattice.
 
     :param lattice: Structural information and simulation state.
     :return: Total magnetization of the simulation state.
     """
-    return lattice.state.sum()
+    return data.state.sum()
 
 
 def ising_compute_site_energy(
@@ -83,9 +86,10 @@ def ising_compute_site_energy(
     :param data: Data container for the simulation.
     :return: Energy of site specified by ``site_index``.
     """
-    site_spin: float = lattice.state[site_index]
+    site_spin: float = data.state[site_index]
     site_neighbors: np.ndarray = lattice.get_neighbors_states(
         site_index=site_index,
+        state=data.state,
         neighborhood=data.parameters.neighborhood,
     )
     energy: float = (

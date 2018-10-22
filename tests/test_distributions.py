@@ -15,7 +15,8 @@ from isingmodel.distributions import BinaryLattice
 )
 def test_2d_initialization(dimensions, expected) -> None:
     lattice: BinaryLattice = BinaryLattice(dimensions)
-    lattice_shape: np.ndarray = np.array(lattice.state.shape)
+    state: np.ndarray = lattice.sample_random_state()
+    lattice_shape: np.ndarray = np.array(state.shape)
     assert lattice_shape.prod() == expected
 
 

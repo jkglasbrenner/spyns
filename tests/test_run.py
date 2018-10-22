@@ -40,18 +40,18 @@ def moore_fm_parameters() -> SimulationParameters:
 def test_ising_run_neumann_ferromagnet(neumann_fm_parameters) -> None:
     data: SimulationData = run.simulation(parameters=neumann_fm_parameters)
     number_sites: int = np.prod(data.parameters.dimensions, dtype="i8")
-    energy: np.ndarray = data.state["energy"] / number_sites
-    magnetization: np.ndarray = data.state["magnetization"] / number_sites
+    energy: np.ndarray = data.estimators.energy / number_sites
+    magnetization: np.ndarray = data.estimators.magnetization / number_sites
 
-    assert energy[0] >= -2.0 and energy[0] <= 2.0
-    assert magnetization[0] >= -1.0 and magnetization[0] <= 1.0
+    assert energy >= -2.0 and energy <= 2.0
+    assert magnetization >= -1.0 and magnetization <= 1.0
 
 
 def test_ising_run_moore_ferromagnet(moore_fm_parameters) -> None:
     data: SimulationData = run.simulation(parameters=moore_fm_parameters)
     number_sites: int = np.prod(data.parameters.dimensions, dtype="i8")
-    energy: np.ndarray = data.state["energy"] / number_sites
-    magnetization: np.ndarray = data.state["magnetization"] / number_sites
+    energy: np.ndarray = data.estimators.energy / number_sites
+    magnetization: np.ndarray = data.estimators.magnetization / number_sites
 
-    assert energy[0] >= -4.0 and energy[0] <= 4.0
-    assert magnetization[0] >= -1.0 and magnetization[0] <= 1.0
+    assert energy >= -4.0 and energy <= 4.0
+    assert magnetization >= -1.0 and magnetization <= 1.0

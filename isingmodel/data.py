@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from dataclasses import dataclass
-from typing import List, NamedTuple, Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
 
-class SimulationParameters(NamedTuple):
+@dataclass(frozen=True)
+class SimulationParameters(object):
     seed: int
     trace_filepath: Union[str, None]
     dimensions: Tuple[int, int]
@@ -17,38 +18,87 @@ class SimulationParameters(NamedTuple):
     temperature: float
     interaction_coefficients: Union[Tuple[float], Tuple[float, float]]
     neighborhood: str
+    __slots__ = [
+        "seed",
+        "trace_filepath",
+        "dimensions",
+        "sweeps",
+        "equilibration_sweeps",
+        "sample_interval",
+        "temperature",
+        "interaction_coefficients",
+        "neighborhood",
+    ]
+
+
+@dataclass
+class Estimators(object):
+    energy: float
+    energy_1st_moment: float
+    energy_2nd_moment: float
+    energy_3rd_moment: float
+    energy_4th_moment: float
+    magnetization: float
+    magnetization_1st_moment: float
+    magnetization_2nd_moment: float
+    magnetization_3rd_moment: float
+    magnetization_4th_moment: float
+    __slots__ = [
+        "energy",
+        "energy_1st_moment",
+        "energy_2nd_moment",
+        "energy_3rd_moment",
+        "energy_4th_moment",
+        "magnetization",
+        "magnetization_1st_moment",
+        "magnetization_2nd_moment",
+        "magnetization_3rd_moment",
+        "magnetization_4th_moment",
+    ]
 
 
 @dataclass
 class SimulationTrace(object):
     sweep: List[Union[int, None]]
-    energy: List[Union[int, None]]
-    magnetization: List[Union[int, None]]
-    E_1st_moment: List[Union[float, None]]
-    E_2nd_moment: List[Union[float, None]]
-    E_3rd_moment: List[Union[float, None]]
-    E_4th_moment: List[Union[float, None]]
-    Mag_1st_moment: List[Union[float, None]]
-    Mag_2nd_moment: List[Union[float, None]]
-    Mag_3rd_moment: List[Union[float, None]]
-    Mag_4th_moment: List[Union[float, None]]
+    energy_1st_moment: List[Union[float, None]]
+    energy_2nd_moment: List[Union[float, None]]
+    energy_3rd_moment: List[Union[float, None]]
+    energy_4th_moment: List[Union[float, None]]
+    magnetization_1st_moment: List[Union[float, None]]
+    magnetization_2nd_moment: List[Union[float, None]]
+    magnetization_3rd_moment: List[Union[float, None]]
+    magnetization_4th_moment: List[Union[float, None]]
     __slots__ = [
-        "sweep", "energy", "magnetization", "E_1st_moment", "E_2nd_moment",
-        "E_3rd_moment", "E_4th_moment", "Mag_1st_moment", "Mag_2nd_moment",
-        "Mag_3rd_moment", "Mag_4th_moment"
+        "sweep",
+        "energy_1st_moment",
+        "energy_2nd_moment",
+        "energy_3rd_moment",
+        "energy_4th_moment",
+        "magnetization_1st_moment",
+        "magnetization_2nd_moment",
+        "magnetization_3rd_moment",
+        "magnetization_4th_moment",
     ]
 
 
 @dataclass
 class SimulationData(object):
     parameters: SimulationParameters
-    trace: SimulationTrace
-    estimators: np.ndarray
     state: np.ndarray
-    __slots__ = ["parameters", "trace", "estimators", "state"]
+    trace: SimulationTrace
+    estimators: Estimators
+    __slots__ = [
+        "parameters",
+        "state",
+        "trace",
+        "estimators",
+    ]
 
 
-def setup_containers(parameters: SimulationParameters) -> SimulationData:
+def setup_containers(
+    parameters: SimulationParameters,
+    state: np.ndarray,
+) -> SimulationData:
     """Initialize the data container for the simulation.
 
     :param parameters: Parameters to use in simulation.
@@ -56,33 +106,9 @@ def setup_containers(parameters: SimulationParameters) -> SimulationData:
     """
     return SimulationData(
         parameters=parameters,
-        trace=SimulationTrace([], [], [], [], [], [], [], [], [], [], []),
-        state=np.array(
-            [(0, 0)],
-            dtype=np.dtype(
-                {
-                    "names": ["energy", "magnetization"],
-                    "formats": ["f8", "f8"],
-                    "offsets": [0, 8],
-                },
-                align=True,
-            ),
-        ),
-        estimators=np.array(
-            [(0, 0, 0, 0, 0, 0, 0, 0)],
-            dtype=np.dtype(
-                {
-                    "names": [
-                        "E_1st_moment", "E_2nd_moment", "E_3rd_moment", "E_4th_moment",
-                        "Mag_1st_moment", "Mag_2nd_moment", "Mag_3rd_moment",
-                        "Mag_4th_moment"
-                    ],
-                    "formats": ["f8", "f8", "f8", "f8", "f8", "f8", "f8", "f8"],
-                    "offsets": [0, 8, 16, 24, 32, 40, 48, 56]
-                },
-                align=True,
-            ),
-        ),
+        state=state,
+        trace=SimulationTrace([], [], [], [], [], [], [], [], []),
+        estimators=Estimators(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
     )
 
 
@@ -94,23 +120,29 @@ def update_trace(data: SimulationData, sweep_index: int, number_sites: int) -> N
     :param number_sites: Number of lattice sites in the simulation.
     """
     data.trace.sweep.append(sweep_index)
-    data.trace.energy.append(data.state["energy"][0])
-    data.trace.magnetization.append(data.state["magnetization"][0])
-    data.trace.E_1st_moment.append(data.estimators["E_1st_moment"][0] / number_sites)
-    data.trace.E_2nd_moment.append(data.estimators["E_2nd_moment"][0] / number_sites)
-    data.trace.E_3rd_moment.append(data.estimators["E_3rd_moment"][0] / number_sites)
-    data.trace.E_4th_moment.append(data.estimators["E_4th_moment"][0] / number_sites)
-    data.trace.Mag_1st_moment.append(
-        data.estimators["Mag_1st_moment"][0] / number_sites
+    data.trace.energy_1st_moment.append(
+        data.estimators.energy_1st_moment / number_sites
     )
-    data.trace.Mag_2nd_moment.append(
-        data.estimators["Mag_2nd_moment"][0] / number_sites
+    data.trace.energy_2nd_moment.append(
+        data.estimators.energy_2nd_moment / number_sites
     )
-    data.trace.Mag_3rd_moment.append(
-        data.estimators["Mag_3rd_moment"][0] / number_sites
+    data.trace.energy_3rd_moment.append(
+        data.estimators.energy_3rd_moment / number_sites
     )
-    data.trace.Mag_4th_moment.append(
-        data.estimators["Mag_4th_moment"][0] / number_sites
+    data.trace.energy_4th_moment.append(
+        data.estimators.energy_4th_moment / number_sites
+    )
+    data.trace.magnetization_1st_moment.append(
+        data.estimators.magnetization_1st_moment / number_sites
+    )
+    data.trace.magnetization_2nd_moment.append(
+        data.estimators.magnetization_2nd_moment / number_sites
+    )
+    data.trace.magnetization_3rd_moment.append(
+        data.estimators.magnetization_3rd_moment / number_sites
+    )
+    data.trace.magnetization_4th_moment.append(
+        data.estimators.magnetization_4th_moment / number_sites
     )
 
 
@@ -121,16 +153,14 @@ def write_trace_to_disk(data: SimulationData) -> None:
     """
     trace_df: pd.DataFrame = pd.DataFrame({
         "sweep": data.trace.sweep,
-        "energy": data.trace.energy,
-        "magnetization": data.trace.magnetization,
-        "E^1": data.trace.E_1st_moment,
-        "E^2": data.trace.E_2nd_moment,
-        "E^3": data.trace.E_3rd_moment,
-        "E^4": data.trace.E_4th_moment,
-        "M^1": data.trace.Mag_1st_moment,
-        "M^2": data.trace.Mag_2nd_moment,
-        "M^3": data.trace.Mag_3rd_moment,
-        "M^4": data.trace.Mag_4th_moment,
+        "E^1": data.trace.energy_1st_moment,
+        "E^2": data.trace.energy_2nd_moment,
+        "E^3": data.trace.energy_3rd_moment,
+        "E^4": data.trace.energy_4th_moment,
+        "M^1": data.trace.magnetization_1st_moment,
+        "M^2": data.trace.magnetization_2nd_moment,
+        "M^3": data.trace.magnetization_3rd_moment,
+        "M^4": data.trace.magnetization_4th_moment,
     })
 
     if data.parameters.trace_filepath:
