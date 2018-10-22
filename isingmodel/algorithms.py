@@ -79,5 +79,5 @@ def metropolis_update_state(
     :param energy_difference: Energy difference for the trial spin flip.
     """
     data.state[site_index] *= -1
-    data.estimators.energy_1st_moment += energy_difference
-    data.estimators.magnetization_1st_moment += 2 * data.state[site_index]
+    data.estimators.energy += energy_difference
+    data.estimators.magnetization += 2 * data.state[site_index]

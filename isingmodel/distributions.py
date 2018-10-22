@@ -36,7 +36,7 @@ class BinaryLattice(object):
         :param site_index: Indices for site whose neighbor states you want to query.
         :param state: Array of lattice spins.
         :param neighborhood: Controls the number of neighbors returned, defaults to
-            "Neumann"
+            'Neumann'
         :return: Array of neighbor states.
         """
         neighbor_indices: np.array = self._get_neighbor_indices(
