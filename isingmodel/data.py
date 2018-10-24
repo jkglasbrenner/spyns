@@ -43,6 +43,16 @@ class Estimators(object):
     magnetization_2nd_moment: float
     magnetization_3rd_moment: float
     magnetization_4th_moment: float
+    magnetization_even_sites: float
+    magnetization_even_sites_1st_moment: float
+    magnetization_even_sites_2nd_moment: float
+    magnetization_even_sites_3rd_moment: float
+    magnetization_even_sites_4th_moment: float
+    magnetization_odd_sites: float
+    magnetization_odd_sites_1st_moment: float
+    magnetization_odd_sites_2nd_moment: float
+    magnetization_odd_sites_3rd_moment: float
+    magnetization_odd_sites_4th_moment: float
     __slots__ = [
         "energy",
         "energy_1st_moment",
@@ -54,6 +64,16 @@ class Estimators(object):
         "magnetization_2nd_moment",
         "magnetization_3rd_moment",
         "magnetization_4th_moment",
+        "magnetization_even_sites",
+        "magnetization_even_sites_1st_moment",
+        "magnetization_even_sites_2nd_moment",
+        "magnetization_even_sites_3rd_moment",
+        "magnetization_even_sites_4th_moment",
+        "magnetization_odd_sites",
+        "magnetization_odd_sites_1st_moment",
+        "magnetization_odd_sites_2nd_moment",
+        "magnetization_odd_sites_3rd_moment",
+        "magnetization_odd_sites_4th_moment",
     ]
 
 
@@ -68,6 +88,14 @@ class SimulationTrace(object):
     magnetization_2nd_moment: List[Union[float, None]]
     magnetization_3rd_moment: List[Union[float, None]]
     magnetization_4th_moment: List[Union[float, None]]
+    magnetization_even_sites_1st_moment: List[Union[float, None]]
+    magnetization_even_sites_2nd_moment: List[Union[float, None]]
+    magnetization_even_sites_3rd_moment: List[Union[float, None]]
+    magnetization_even_sites_4th_moment: List[Union[float, None]]
+    magnetization_odd_sites_1st_moment: List[Union[float, None]]
+    magnetization_odd_sites_2nd_moment: List[Union[float, None]]
+    magnetization_odd_sites_3rd_moment: List[Union[float, None]]
+    magnetization_odd_sites_4th_moment: List[Union[float, None]]
     __slots__ = [
         "sweep",
         "energy_1st_moment",
@@ -78,6 +106,14 @@ class SimulationTrace(object):
         "magnetization_2nd_moment",
         "magnetization_3rd_moment",
         "magnetization_4th_moment",
+        "magnetization_even_sites_1st_moment",
+        "magnetization_even_sites_2nd_moment",
+        "magnetization_even_sites_3rd_moment",
+        "magnetization_even_sites_4th_moment",
+        "magnetization_odd_sites_1st_moment",
+        "magnetization_odd_sites_2nd_moment",
+        "magnetization_odd_sites_3rd_moment",
+        "magnetization_odd_sites_4th_moment",
     ]
 
 
@@ -107,8 +143,11 @@ def setup_containers(
     return SimulationData(
         parameters=parameters,
         state=state,
-        trace=SimulationTrace([], [], [], [], [], [], [], [], []),
-        estimators=Estimators(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        trace=SimulationTrace([], [], [], [], [], [], [], [], [], [], [], [], [], [],
+                              [], [], []),
+        estimators=Estimators(
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        ),
     )
 
 
@@ -144,6 +183,30 @@ def update_trace(data: SimulationData, sweep_index: int, number_sites: int) -> N
     data.trace.magnetization_4th_moment.append(
         data.estimators.magnetization_4th_moment / number_sites
     )
+    data.trace.magnetization_even_sites_1st_moment.append(
+        data.estimators.magnetization_even_sites_1st_moment / number_sites
+    )
+    data.trace.magnetization_even_sites_2nd_moment.append(
+        data.estimators.magnetization_even_sites_2nd_moment / number_sites
+    )
+    data.trace.magnetization_even_sites_3rd_moment.append(
+        data.estimators.magnetization_even_sites_3rd_moment / number_sites
+    )
+    data.trace.magnetization_even_sites_4th_moment.append(
+        data.estimators.magnetization_even_sites_4th_moment / number_sites
+    )
+    data.trace.magnetization_odd_sites_1st_moment.append(
+        data.estimators.magnetization_odd_sites_1st_moment / number_sites
+    )
+    data.trace.magnetization_odd_sites_2nd_moment.append(
+        data.estimators.magnetization_odd_sites_2nd_moment / number_sites
+    )
+    data.trace.magnetization_odd_sites_3rd_moment.append(
+        data.estimators.magnetization_odd_sites_3rd_moment / number_sites
+    )
+    data.trace.magnetization_odd_sites_4th_moment.append(
+        data.estimators.magnetization_odd_sites_4th_moment / number_sites
+    )
 
 
 def write_trace_to_disk(data: SimulationData) -> None:
@@ -151,17 +214,26 @@ def write_trace_to_disk(data: SimulationData) -> None:
 
     :param data: Data container for the simulation.
     """
-    trace_df: pd.DataFrame = pd.DataFrame({
-        "sweep": data.trace.sweep,
-        "E^1": data.trace.energy_1st_moment,
-        "E^2": data.trace.energy_2nd_moment,
-        "E^3": data.trace.energy_3rd_moment,
-        "E^4": data.trace.energy_4th_moment,
-        "M^1": data.trace.magnetization_1st_moment,
-        "M^2": data.trace.magnetization_2nd_moment,
-        "M^3": data.trace.magnetization_3rd_moment,
-        "M^4": data.trace.magnetization_4th_moment,
-    })
+    trace_df: pd.DataFrame = \
+        pd.DataFrame({
+            "sweep": data.trace.sweep,
+            "E": data.trace.energy_1st_moment,
+            "E**2": data.trace.energy_2nd_moment,
+            "E**3": data.trace.energy_3rd_moment,
+            "E**4": data.trace.energy_4th_moment,
+            "M": data.trace.magnetization_1st_moment,
+            "M**2": data.trace.magnetization_2nd_moment,
+            "M**3": data.trace.magnetization_3rd_moment,
+            "M**4": data.trace.magnetization_4th_moment,
+            "M_even": data.trace.magnetization_even_sites_1st_moment,
+            "M_even**2": data.trace.magnetization_even_sites_2nd_moment,
+            "M_even**3": data.trace.magnetization_even_sites_3rd_moment,
+            "M_even**4": data.trace.magnetization_even_sites_4th_moment,
+            "M_odd": data.trace.magnetization_odd_sites_1st_moment,
+            "M_odd**2": data.trace.magnetization_odd_sites_2nd_moment,
+            "M_odd**3": data.trace.magnetization_odd_sites_3rd_moment,
+            "M_odd**4": data.trace.magnetization_odd_sites_4th_moment,
+        })
 
     if data.parameters.trace_filepath:
         trace_df.to_csv(path_or_buf=data.parameters.trace_filepath, index=False)

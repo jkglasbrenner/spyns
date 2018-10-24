@@ -36,11 +36,18 @@ def update_estimators(data: SimulationData, number_samples: int) -> None:
     :param number_samples: Number of samples currently in mean.
     """
     estimator_means_list: List[str] = ([
-        f"{parameter}_{moment}_moment" for parameter in ["energy", "magnetization"]
-        for moment in ["1st", "2nd", "3rd", "4th"]
+        f"{parameter}_{moment}_moment" for parameter in [
+            "energy",
+            "magnetization",
+            "magnetization_even_sites",
+            "magnetization_odd_sites",
+        ] for moment in ["1st", "2nd", "3rd", "4th"]
     ])
-    estimator_samples_list: List[str] = 4 * ["energy"] + 4 * ["magnetization"]
-    powers_list: List[int] = 2 * list(range(1, 5))
+    estimator_samples_list: List[str] = (
+        4 * ["energy"] + 4 * ["magnetization"] + 4 * ["magnetization_even_sites"] +
+        4 * ["magnetization_odd_sites"]
+    )
+    powers_list: List[int] = 4 * list(range(1, 5))
     estimators_zip: Iterable = \
         zip(estimator_means_list, estimator_samples_list, powers_list)
 
