@@ -15,7 +15,7 @@ def metropolis(lattice: BinaryLattice, data: SimulationData) -> None:
     :param lattice: Structural information and simulation state.
     :param data: Data container for the simulation.
     """
-    site_index: Tuple[int, int] = metropolis_pick_site(data=data)
+    site_index: int = metropolis_pick_site(lattice=lattice)
     energy_difference: float = isingmodel.model.ising_test_flip(
         site_index=site_index,
         lattice=lattice,
@@ -34,16 +34,15 @@ def metropolis(lattice: BinaryLattice, data: SimulationData) -> None:
         )
 
 
-def metropolis_pick_site(data: SimulationData) -> Tuple[int, int]:
+def metropolis_pick_site(lattice: BinaryLattice) -> int:
     """Pick a lattice site at random for the metropolis algorithm.
 
     :param data: Data container for the simulation.
-    :return: Indices for randomly chosen site.
+    :return: Index for randomly chosen site.
     """
-    index1: int = np.random.randint(low=0, high=data.parameters.dimensions[0])
-    index2: int = np.random.randint(low=0, high=data.parameters.dimensions[1])
+    site_index: int = np.random.randint(low=0, high=lattice.number_sites)
 
-    return index1, index2
+    return site_index
 
 
 def metropolis_accept_or_reject(temperature: float, energy_difference: float) -> bool:
@@ -68,14 +67,14 @@ def metropolis_accept_or_reject(temperature: float, energy_difference: float) ->
 def metropolis_update_state(
     lattice: BinaryLattice,
     data: SimulationData,
-    site_index: Tuple[int, int],
+    site_index: int,
     energy_difference: float,
 ) -> None:
     """Method to update simulation state when trial flip is accepted. 
 
     :param lattice: Structural information and simulation state.
     :param data: Data container for the simulation.
-    :param site_index: Indices for randomly chosen site.
+    :param site_index: Index for randomly chosen site.
     :param energy_difference: Energy difference for the trial spin flip.
     """
     data.state[site_index] *= -1

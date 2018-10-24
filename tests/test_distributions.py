@@ -37,4 +37,5 @@ def test_finding_neighbor_indices(dimensions, site, neighborhood, neighbors) -> 
         neighborhood=neighborhood,
     )
     neighbors_verify = np.array(neighbors)
+    neighbors_verify = neighbors_verify[:, 1] + neighbors_verify[:, 0] * dimensions[1]
     assert np.all(np.sort(neighbors_verify) == np.sort(neighbor_check))

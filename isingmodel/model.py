@@ -9,13 +9,13 @@ from isingmodel.distributions import BinaryLattice
 
 
 def ising_test_flip(
-    site_index: Tuple[int, int],
+    site_index: int,
     lattice: BinaryLattice,
     data: SimulationData,
 ) -> float:
     """Compute the change in energy for a trial spin flip.
 
-    :param site_index: Perform trial spin flip on site specified by these indices.
+    :param site_index: Perform trial spin flip on site specified by the index.
     :param lattice: Structural information and simulation state.
     :param data: Data container for the simulation.
     :return: Change in energy for trial spin flip.
@@ -50,10 +50,7 @@ def ising_total_energy(lattice: BinaryLattice, data: SimulationData) -> float:
     :return: Total energy of the simulation state.
     """
     total_energy: float = 0
-    site_index_list: List[Tuple[int, int]] = \
-        [(index1, index2)
-         for index1 in range(data.parameters.dimensions[0])
-         for index2 in range(data.parameters.dimensions[1])]
+    site_index_list: List[int] = list(range(lattice.number_sites))
 
     for site_index in site_index_list:
         total_energy += ising_compute_site_energy(
@@ -86,9 +83,11 @@ def ising_compute_site_energy(
     :param data: Data container for the simulation.
     :return: Energy of site specified by ``site_index``.
     """
+    row_index: int = int(site_index // lattice.dimensions[1])
+    column_index: int = int(site_index % lattice.dimensions[1])
     site_spin: float = data.state[site_index]
     site_neighbors: np.ndarray = lattice.get_neighbors_states(
-        site_index=site_index,
+        site_index=(row_index, column_index),
         state=data.state,
         neighborhood=data.parameters.neighborhood,
     )
