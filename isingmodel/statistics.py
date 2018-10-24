@@ -1,28 +1,32 @@
 # -*- coding: utf-8 -*-
 
-from typing import List
+from typing import Iterable, List
 
 from isingmodel.data import SimulationData
 
 
 def update_running_average(
     data: SimulationData,
-    state: str,
-    estimator: str,
+    estimator_sample_name: str,
+    estimator_mean_name: str,
     power: int,
     number_samples: int,
 ) -> float:
     """Update estimator mean using simple moving average algorithm.
 
     :param data: Data container for the simulation.
-    :param estimator: Estimator name within estimators container.
+    :param state: Sampled value of estimator.
+    :param estimator_sample_name: Name for sampled value of estimator within estimators
+        container.
+    :param estimator_mean_name: Name for mean value of estimator within estimators
+        container.
     :param power: Estimator moment.
     :param number_samples: Number of samples currently in mean.
     :return: Updated estimator mean.
     """
-    state_value: float = getattr(data.estimators, state)
-    estimator_mean: float = getattr(data.estimators, estimator)
-    return (state_value**power - estimator_mean) / (number_samples + 1)
+    estimator_sample: float = getattr(data.estimators, estimator_sample_name)
+    estimator_mean: float = getattr(data.estimators, estimator_mean_name)
+    return (estimator_sample**power - estimator_mean) / (number_samples + 1)
 
 
 def update_estimators(data: SimulationData, number_samples: int) -> None:
@@ -31,22 +35,24 @@ def update_estimators(data: SimulationData, number_samples: int) -> None:
     :param data: Data container for the simulation.
     :param number_samples: Number of samples currently in mean.
     """
-    estimators: List[str] = ([
+    estimator_means_list: List[str] = ([
         f"{parameter}_{moment}_moment" for parameter in ["energy", "magnetization"]
         for moment in ["1st", "2nd", "3rd", "4th"]
     ])
-    states: List[str] = 4 * ["energy"] + 4 * ["magnetization"]
-    powers: List[int] = 2 * list(range(1, 5))
+    estimator_samples_list: List[str] = 4 * ["energy"] + 4 * ["magnetization"]
+    powers_list: List[int] = 2 * list(range(1, 5))
+    estimators_zip: Iterable = \
+        zip(estimator_means_list, estimator_samples_list, powers_list)
 
-    for estimator, state, power in zip(estimators, states, powers):
-        estimator_mean: float = getattr(data.estimators, estimator)
+    for estimator_mean_name, estimator_sample_name, power in estimators_zip:
+        estimator_mean: float = getattr(data.estimators, estimator_mean_name)
         setattr(
             data.estimators,
-            estimator,
+            estimator_mean_name,
             estimator_mean + update_running_average(
                 data=data,
-                estimator=estimator,
-                state=state,
+                estimator_sample_name=estimator_sample_name,
+                estimator_mean_name=estimator_mean_name,
                 power=power,
                 number_samples=number_samples,
             ),

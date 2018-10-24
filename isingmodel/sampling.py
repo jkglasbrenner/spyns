@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from isingmodel.data import SimulationData
-from isingmodel.distributions import BinaryLattice
+from isingmodel.lattice import BinaryLattice
 import isingmodel
 
 
@@ -13,7 +13,7 @@ def sweep_grid(
 ) -> None:
     """Sweep the lattice and take a sample if required.
 
-    :param lattice: Structural information and simulation state.
+    :param lattice: Structural information and neighbor tables.
     :param data: Data container for the simulation.
     :param sweep_index: Sweep index for the simulation.
     :param equilibration_run: Whether or not the current sweep is part of equilibration
@@ -32,9 +32,9 @@ def update_simulation_data(
     sweep_index: int,
 ) -> None:
     """Take a sample and update the simulation estimators and trace.
-    
+
     :param data: Data container for the simulation.
-    :param lattice: Structural information and simulation state.
+    :param lattice: Structural information and neighbor tables.
     :param sweep_index: Sweep index for the simulation.
     """
     number_samples: int = len(data.trace.sweep)
