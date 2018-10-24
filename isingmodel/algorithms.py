@@ -25,6 +25,7 @@ def metropolis(lattice: BinaryLattice, data: SimulationData) -> None:
     )
     if accept_state:
         metropolis_update_state(
+            lattice=lattice,
             data=data,
             site_index=site_index,
             energy_difference=energy_difference,
@@ -62,19 +63,28 @@ def metropolis_accept_or_reject(temperature: float, energy_difference: float) ->
 
 
 def metropolis_update_state(
+    lattice: BinaryLattice,
     data: SimulationData,
     site_index: int,
     energy_difference: float,
 ) -> None:
     """Accept trial flip and update simulation state.
 
+    :param lattice: Structural information and neighbor tables.
     :param data: Data container for the simulation.
     :param site_index: Index for randomly chosen site.
     :param energy_difference: Energy difference for the trial spin flip.
     """
     data.state[site_index] *= -1
     data.estimators.energy += energy_difference
-    data.estimators.magnetization += 2 * data.state[site_index]
+    magnetization_change = 2 * data.state[site_index]
+    data.estimators.magnetization += magnetization_change
+
+    if site_index in lattice.even_site_indices:
+        data.estimators.magnetization_even_sites += magnetization_change
+
+    else:
+        data.estimators.magnetization_odd_sites += magnetization_change
 
 
 def metropolis_proposal_distribution(

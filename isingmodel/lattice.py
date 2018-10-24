@@ -19,11 +19,13 @@ class BinaryLattice(object):
         "_neighbor_count_list",
         "_neighbor_table_lookup_index",
         "_interaction_parameters_table",
+        "_even_site_indices",
+        "_odd_site_indices",
         "_number_sites",
     ]
 
     def __init__(self, dimensions, neighborhood, interaction_parameters):
-        """Initialize BinaryLattice object and build neighbor tables.
+        """Initialize attributes, build neighbor tables, and cache even/odd indices.
         
         :param dimensions: Number of sites along x and y dimensions of square lattice.
         :param neighborhood: Controls the number of neighbors returned.
@@ -34,11 +36,22 @@ class BinaryLattice(object):
         self._number_sites: int = int(np.prod(dimensions))
         self._build_and_cache_neighbor_table()
         self._build_and_cache_interaction_parameter_table(interaction_parameters)
+        self._cache_even_and_odd_site_indices()
 
     @property
     def number_sites(self):
         """Total sites in the simulation."""
         return self._number_sites
+
+    @property
+    def even_site_indices(self):
+        """Even site indices on the lattice."""
+        return self._even_site_indices
+
+    @property
+    def odd_site_indices(self):
+        """Odd site indices on the lattice."""
+        return self._odd_site_indices
 
     def sample_random_state(self) -> np.ndarray:
         """Generate sample of random states on the binary lattice."""
@@ -243,3 +256,25 @@ class BinaryLattice(object):
         indices[indices[:, 0] >= self.dimensions[0], 0] = 0
         indices[indices[:, 1] < 0, 1] = self.dimensions[1] - 1
         indices[indices[:, 1] >= self.dimensions[1], 1] = 0
+
+    def _cache_even_and_odd_site_indices(self):
+        """Find and cache indices for even and odd lattice sites."""
+        self._even_site_indices: List[int] = [
+            row * self.dimensions[1] + column
+            for row in range(0, self.dimensions[0], 2)
+            for column in range(0, self.dimensions[1], 2)
+        ] + [
+            row * self.dimensions[1] + column
+            for row in range(1, self.dimensions[0], 2)
+            for column in range(1, self.dimensions[1], 2)
+        ]
+
+        self._odd_site_indices: List[int] = [
+            row * self.dimensions[1] + column
+            for row in range(0, self.dimensions[0], 2)
+            for column in range(1, self.dimensions[1], 2)
+        ] + [
+            row * self.dimensions[1] + column
+            for row in range(1, self.dimensions[0], 2)
+            for column in range(0, self.dimensions[1], 2)
+        ]

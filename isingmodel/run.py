@@ -82,15 +82,21 @@ def post_simulation(
     lattice: BinaryLattice,
     data: SimulationData,
 ) -> None:
-    """Write the simulation history to disk and print energy and magnetization
-    estimators.
+    """Write the simulation history to disk and print estimators.
 
     :param lattice: Structural information and neighbor tables.
     :param data: Data container for the simulation.
     """
     isingmodel.data.write_trace_to_disk(data=data)
-    print(f"Energy = {data.estimators.energy_1st_moment / lattice.number_sites}")
-    print(
-        "Magnetization = "
-        f"{data.estimators.magnetization_1st_moment / lattice.number_sites}"
-    )
+
+    average_energy: float = \
+        data.estimators.energy_1st_moment / lattice.number_sites
+    fm_order_parameter: float = \
+        data.estimators.magnetization_1st_moment / lattice.number_sites
+    afm_order_parameter: float = (
+        data.estimators.magnetization_even_sites_1st_moment -
+        data.estimators.magnetization_odd_sites_1st_moment
+    ) / lattice.number_sites
+    print(f"Average energy = {average_energy}")
+    print(f"FM order parameter = {fm_order_parameter}")
+    print(f"AFM order parameter = {afm_order_parameter}")

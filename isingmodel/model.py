@@ -40,6 +40,14 @@ def ising_save_full_state(lattice: BinaryLattice, data: SimulationData) -> None:
         data=data,
     )
     data.estimators.magnetization = ising_total_magnetization(data=data)
+    data.estimators.magnetization_even_sites = ising_total_magnetization_even_sites(
+        lattice=lattice,
+        data=data,
+    )
+    data.estimators.magnetization_odd_sites = ising_total_magnetization_odd_sites(
+        lattice=lattice,
+        data=data,
+    )
 
 
 def ising_total_energy(lattice: BinaryLattice, data: SimulationData) -> float:
@@ -68,6 +76,32 @@ def ising_total_magnetization(data: SimulationData) -> float:
     :return: Total magnetization of the simulation state.
     """
     return data.state.sum()
+
+
+def ising_total_magnetization_even_sites(
+    lattice: BinaryLattice,
+    data: SimulationData,
+) -> float:
+    """Compute the total magnetization estimator for the even sites on the lattice.
+
+    :param lattice: Structural information and neighbor tables.
+    :param data: Data container for the simulation.
+    :return: Total magnetization of the simulation state.
+    """
+    return data.state[lattice.even_site_indices].sum()
+
+
+def ising_total_magnetization_odd_sites(
+    lattice: BinaryLattice,
+    data: SimulationData,
+) -> float:
+    """Compute the total magnetization estimator for the even sites on the lattice.
+
+    :param lattice: Structural information and neighbor tables.
+    :param data: Data container for the simulation.
+    :return: Total magnetization of the simulation state.
+    """
+    return data.state[lattice.odd_site_indices].sum()
 
 
 def ising_compute_site_energy(
