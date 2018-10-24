@@ -3,7 +3,7 @@
 import numpy as np
 
 from isingmodel.data import SimulationData, SimulationParameters
-from isingmodel.distributions import BinaryLattice
+from isingmodel.lattice import BinaryLattice
 import isingmodel
 
 
@@ -15,7 +15,11 @@ def simulation(parameters: SimulationParameters) -> SimulationData:
     """
     np.random.seed(parameters.seed)
 
-    lattice: BinaryLattice = BinaryLattice(parameters.dimensions)
+    lattice: BinaryLattice = BinaryLattice(
+        parameters.dimensions,
+        parameters.neighborhood,
+        parameters.interaction_coefficients,
+    )
     data: SimulationData = isingmodel.data.setup_containers(
         parameters=parameters,
         state=lattice.sample_random_state(),
@@ -43,7 +47,7 @@ def pre_simulation(
 ) -> None:
     """Run equilibration sweeps.
 
-    :param lattice: Structural information and simulation state.
+    :param lattice: Structural information and neighbor tables.
     :param data: Data container for the simulation.
     """
     for sweep_index in range(data.parameters.equilibration_sweeps):
@@ -61,7 +65,7 @@ def main_simulation(
 ) -> None:
     """Run the production sweeps for the Ising model simulation.
 
-    :param lattice: Structural information and simulation state.
+    :param lattice: Structural information and neighbor tables.
     :param data: Data container for the simulation.
     """
     isingmodel.model.ising_save_full_state(lattice=lattice, data=data)
@@ -81,7 +85,7 @@ def post_simulation(
     """Write the simulation history to disk and print energy and magnetization
     estimators.
 
-    :param lattice: Structural information and simulation state.
+    :param lattice: Structural information and neighbor tables.
     :param data: Data container for the simulation.
     """
     isingmodel.data.write_trace_to_disk(data=data)

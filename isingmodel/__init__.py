@@ -2,7 +2,7 @@
 
 import isingmodel.algorithms
 import isingmodel.data
-import isingmodel.distributions
+import isingmodel.lattice
 import isingmodel.model
 import isingmodel.run
 import isingmodel.sampling
