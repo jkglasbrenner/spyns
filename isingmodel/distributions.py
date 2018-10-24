@@ -23,7 +23,7 @@ class BinaryLattice(object):
 
     def sample_random_state(self):
         """Generate sample of random states on the binary lattice."""
-        return np.random.choice(a=[-1, 1], size=self.dimensions, replace=True)
+        return np.random.choice(a=[-1, 1], size=np.prod(self.dimensions), replace=True)
 
     def get_neighbors_states(
         self,
@@ -44,7 +44,7 @@ class BinaryLattice(object):
             neighborhood=neighborhood,
         )
 
-        return state[neighbor_indices[:, 0], neighbor_indices[:, 1]]
+        return state[neighbor_indices]
 
     def _get_neighbor_indices(
         self,
@@ -89,7 +89,7 @@ class BinaryLattice(object):
 
         self._apply_periodic_boundary(indices=neighbor_indices)
 
-        return neighbor_indices
+        return neighbor_indices[:, 1] + neighbor_indices[:, 0] * self.dimensions[1]
 
     def _apply_periodic_boundary(self, indices: np.array) -> None:
         """Enforce periodic boundaries after getting neighbor indices.
