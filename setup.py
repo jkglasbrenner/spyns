@@ -10,7 +10,7 @@ from sphinx.setup_command import BuildDoc
 with open('README.rst', 'rt', encoding='utf8') as f:
     readme = f.read()
 
-name = "isingmodel"
+name = "spyns"
 version = "0.1"
 release = "0.1.0"
 
@@ -28,7 +28,7 @@ setuptools.setup(
         ("Documentation", "https://isingmodel.readthedocs.io"),
         ("Code", "https://github.com/jkglasbrenner/ising-model-py"),
     )),
-    description="The two-dimensional Ising model implemented in Python.",
+    description="Monte Carlo simulations of magnetic systems in Python.",
     long_description=readme,
     python_requires=">=3.7",
     packages=setuptools.find_packages(),

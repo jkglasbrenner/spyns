@@ -7,14 +7,14 @@ ROOTDIR				=	$(abspath $(patsubst %/,%,$(dir $(abspath $(lastword 	\
 
 SHELL				=	/bin/sh
 
-PROJNAME			=	ising-model-py
+PROJNAME			=	spyns
 
 RM					=	rm
 COPY				=	cp
 FIND				=	find
 
 CONDA				=	conda
-CONDA_ENV_FILE		=	environment.yaml
+CONDA_ENV_FILE		=	environment.yml
 
 PY					?=	python3
 PY_SETUP			=	setup.py
@@ -28,7 +28,7 @@ CLEAN_FILES			=	build/													\
 						*.egg-info/
 
 define makefile_help
-	@echo 'Makefile for the ising-model.py project                                   '
+	@echo 'Makefile for the spyns project                                            '
 	@echo '                                                                          '
 	@echo 'Usage:                                                                    '
 	@echo '   make help                           display this message (default)     '

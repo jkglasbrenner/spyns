@@ -1,6 +1,6 @@
 SPHINXOPTS			=
 SPHINXBUILD			=	sphinx-build
-SPHINXPROJ			=	isingmodel
+SPHINXPROJ			=	spyns
 SOURCEDIR			=	.
 BUILDDIR			=	_build
 

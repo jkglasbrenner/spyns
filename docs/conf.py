@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'isingmodel'
+project = 'spyns'
 copyright = '2018, James K. Glasbrenner'
 author = 'James K. Glasbrenner'
 
@@ -120,7 +120,7 @@ html_context = {
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'isingmodel'
+htmlhelp_basename = 'spyns'
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -146,17 +146,14 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (
-        master_doc, 'isingmodel.tex', 'isingmodel Documentation',
-        'James K. Glasbrenner', 'manual'
-    ),
+    (master_doc, 'spyns.tex', 'sPyns Documentation', 'James K. Glasbrenner', 'manual'),
 ]
 
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, 'isingmodel', 'isingmodel Documentation', [author], 1)]
+man_pages = [(master_doc, 'spyns', 'sPyns Documentation', [author], 1)]
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -165,8 +162,8 @@ man_pages = [(master_doc, 'isingmodel', 'isingmodel Documentation', [author], 1)
 #  dir menu entry, description, category)
 texinfo_documents = [
     (
-        master_doc, 'isingmodel', 'isingmodel Documentation', author, 'isingmodel',
-        'The two-dimensional Ising model implemented in Python.', 'Simulation'
+        master_doc, 'spyns', 'sPyns Documentation', author, 'spyns',
+        'Monte Carlo simulations of magnetic systems in Python.', 'Simulation'
     ),
 ]
 

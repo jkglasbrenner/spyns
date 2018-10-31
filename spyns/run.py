@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from isingmodel.data import SimulationData, SimulationParameters
-from isingmodel.lattice import BinaryLattice
-import isingmodel
+from spyns.data import SimulationData, SimulationParameters
+from spyns.lattice import BinaryLattice
+import spyns
 
 
 def simulation(parameters: SimulationParameters) -> SimulationData:
@@ -20,7 +20,7 @@ def simulation(parameters: SimulationParameters) -> SimulationData:
         parameters.neighborhood,
         parameters.interaction_coefficients,
     )
-    data: SimulationData = isingmodel.data.setup_containers(
+    data: SimulationData = spyns.data.setup_containers(
         parameters=parameters,
         state=lattice.sample_random_state(),
     )
@@ -51,7 +51,7 @@ def pre_simulation(
     :param data: Data container for the simulation.
     """
     for sweep_index in range(data.parameters.equilibration_sweeps):
-        isingmodel.sampling.sweep_grid(
+        spyns.sampling.sweep_grid(
             lattice=lattice,
             data=data,
             sweep_index=sweep_index,
@@ -68,9 +68,9 @@ def main_simulation(
     :param lattice: Structural information and neighbor tables.
     :param data: Data container for the simulation.
     """
-    isingmodel.model.ising_save_full_state(lattice=lattice, data=data)
+    spyns.model.ising_save_full_state(lattice=lattice, data=data)
     for sweep_index in range(data.parameters.sweeps):
-        isingmodel.sampling.sweep_grid(
+        spyns.sampling.sweep_grid(
             lattice=lattice,
             data=data,
             sweep_index=sweep_index,
@@ -87,7 +87,7 @@ def post_simulation(
     :param lattice: Structural information and neighbor tables.
     :param data: Data container for the simulation.
     """
-    isingmodel.data.write_trace_to_disk(data=data)
+    spyns.data.write_trace_to_disk(data=data)
 
     average_energy: float = \
         data.estimators.energy_1st_moment / lattice.number_sites
