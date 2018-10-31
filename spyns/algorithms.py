@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from isingmodel.data import SimulationData
-from isingmodel.lattice import BinaryLattice
-import isingmodel
+from spyns.data import SimulationData
+from spyns.lattice import BinaryLattice
+import spyns
 
 
 def metropolis(lattice: BinaryLattice, data: SimulationData) -> None:
@@ -14,7 +14,7 @@ def metropolis(lattice: BinaryLattice, data: SimulationData) -> None:
     :param data: Data container for the simulation.
     """
     site_index: int = metropolis_pick_site(lattice=lattice)
-    energy_difference: float = isingmodel.model.ising_test_flip(
+    energy_difference: float = spyns.model.ising_test_flip(
         site_index=site_index,
         lattice=lattice,
         data=data,

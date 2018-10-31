@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from isingmodel.data import SimulationParameters, SimulationData
-import isingmodel.run as run
+from spyns.data import SimulationParameters, SimulationData
+import spyns.run as run
 
 
 @pytest.fixture()

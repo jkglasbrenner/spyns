@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from isingmodel.lattice import BinaryLattice
+from spyns.lattice import BinaryLattice
 
 
 @pytest.mark.parametrize(

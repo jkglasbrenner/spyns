@@ -1,7 +1,7 @@
-``ising-model.py``
-==================
+sPyns
+=====
 
-The two-dimensional *Ising model* implemented in Python.
+Monte Carlo simulations of magnetic systems in Python.
 
 
 License

@@ -4,8 +4,8 @@ from typing import Tuple
 
 import numpy as np
 
-from isingmodel.data import SimulationData
-from isingmodel.lattice import BinaryLattice
+from spyns.data import SimulationData
+from spyns.lattice import BinaryLattice
 
 
 def ising_test_flip(

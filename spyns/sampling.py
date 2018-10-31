@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from isingmodel.data import SimulationData
-from isingmodel.lattice import BinaryLattice
-import isingmodel
+from spyns.data import SimulationData
+from spyns.lattice import BinaryLattice
+import spyns
 
 
 def sweep_grid(
@@ -20,7 +20,7 @@ def sweep_grid(
         run.
     """
     for _ in range(lattice.number_sites):
-        isingmodel.algorithms.metropolis(lattice=lattice, data=data)
+        spyns.algorithms.metropolis(lattice=lattice, data=data)
 
     if sweep_index % data.parameters.sample_interval == 0 and not equilibration_run:
         update_simulation_data(data=data, lattice=lattice, sweep_index=sweep_index)
@@ -38,8 +38,8 @@ def update_simulation_data(
     :param sweep_index: Sweep index for the simulation.
     """
     number_samples: int = len(data.trace.sweep)
-    isingmodel.statistics.update_estimators(data=data, number_samples=number_samples)
-    isingmodel.data.update_trace(
+    spyns.statistics.update_estimators(data=data, number_samples=number_samples)
+    spyns.data.update_trace(
         data=data,
         sweep_index=sweep_index,
         number_sites=lattice.number_sites,

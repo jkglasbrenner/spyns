@@ -2,7 +2,7 @@
 
 from typing import Iterable, List
 
-from isingmodel.data import SimulationData
+from spyns.data import SimulationData
 
 
 def update_running_average(
