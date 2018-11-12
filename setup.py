@@ -36,6 +36,8 @@ setuptools.setup(
     setup_requires=[] + pytest_runner,
     install_requires=[
         "numpy",
+        "pandas",
+        "pymatgen",
     ],
     extras_require={
         "docs": [
