@@ -2,18 +2,21 @@
 
 import numpy as np
 
-from spyns.data import SimulationData, SimulationParameters
+from spyns.data import HeisenbergState, SimulationData, SimulationParameters
 from spyns.lattice import Lattice
 import spyns
 
 
 def simulation(lattice: Lattice, parameters: SimulationParameters) -> SimulationData:
-    """Run the Ising model simulation.
+    """Run a sPyns simulation.
 
-    :param lattice: Pymatgen ``Structure`` object and neighbor tables defining the
-        system lattice.
+    sPyns currently supports two models of spin simulations on a periodic lattice, the
+    Ising model and the Heisenberg model.
+
+    :param lattice: Neighbor and interaction tables that define the system under
+        simulation.
     :param parameters: Parameters to use for setting up and running the simulation.
-    :return: Output of the Ising model simulation.
+    :return: Data container of results for the sPyns simulation.
     """
     np.random.seed(parameters.seed)
 
@@ -21,6 +24,15 @@ def simulation(lattice: Lattice, parameters: SimulationParameters) -> Simulation
         data: SimulationData = spyns.data.setup_containers(
             parameters=parameters,
             state=spyns.model.ising.sample_random_state(lattice.number_sites),
+            lattice=lattice,
+        )
+
+    elif parameters.mode.strip().lower() == "heisenberg":
+        heisenberg_state: HeisenbergState = \
+            spyns.model.heisenberg.sample_random_state(lattice.number_sites)
+        data: SimulationData = spyns.data.setup_containers(
+            parameters=parameters,
+            state=heisenberg_state,
             lattice=lattice,
         )
 
@@ -49,6 +61,14 @@ def pre_simulation(data: SimulationData) -> None:
                 equilibration_run=True,
             )
 
+    elif data.parameters.mode.strip().lower() == "heisenberg":
+        for sweep_index in range(data.parameters.equilibration_sweeps):
+            spyns.algorithms.metropolis.heisenberg.sweep(
+                data=data,
+                sweep_index=sweep_index,
+                equilibration_run=True,
+            )
+
     else:
         raise AttributeError(
             f"Simulation mode {data.parameters.mode.strip()} is not supported."
@@ -56,7 +76,7 @@ def pre_simulation(data: SimulationData) -> None:
 
 
 def main_simulation(data: SimulationData) -> None:
-    """Run the production sweeps for the Ising model simulation.
+    """Run the production sweeps for the sPyns simulation.
 
     :param data: Data container for the simulation.
     """
@@ -69,6 +89,15 @@ def main_simulation(data: SimulationData) -> None:
                 equilibration_run=False,
             )
 
+    elif data.parameters.mode.strip().lower() == "heisenberg":
+        spyns.model.heisenberg.save_full_state(data=data)
+        for sweep_index in range(data.parameters.sweeps):
+            spyns.algorithms.metropolis.heisenberg.sweep(
+                data=data,
+                sweep_index=sweep_index,
+                equilibration_run=False,
+            )
+
     else:
         raise AttributeError(
             f"Simulation mode {data.parameters.mode.strip()} is not supported."
@@ -76,24 +105,17 @@ def main_simulation(data: SimulationData) -> None:
 
 
 def post_simulation(data: SimulationData) -> None:
-    """Write the simulation history to disk and print estimators.
+    """Make (and optionally save) a trace history data frame and print estimators.
 
     :param data: Data container for the simulation.
     """
-    if data.parameters.mode.strip().lower() == "ising":
-        spyns.data.write_trace_to_disk(
-            data=data,
-            number_sublattices=data.lookup_tables.number_sublattices,
-        )
+    spyns.data.make_trace_data_frame(data=data)
+    spyns.data.write_trace_history_to_disk(data=data)
 
-        average_energy: float = \
-            data.estimators.energy_1st_moment / data.lookup_tables.number_sites
-        total_magnetization: float = \
-            data.estimators.magnetization_1st_moment.sum() / data.lookup_tables.number_sites
-        print(f"Average energy = {average_energy}")
-        print(f"Total magnetization = {total_magnetization}")
+    average_energy: float = \
+        data.estimators.energy_1st_moment / data.lookup_tables.number_sites
+    magnetization: np.ndarray = \
+        data.estimators.magnetization_1st_moment / data.lookup_tables.number_sites
 
-    else:
-        raise AttributeError(
-            f"Simulation mode {data.parameters.mode.strip()} is not supported."
-        )
+    print(f"Average energy = {average_energy}")
+    print(f"Average magnetization = {magnetization}")

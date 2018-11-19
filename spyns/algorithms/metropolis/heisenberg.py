@@ -3,30 +3,31 @@
 import numpy as np
 
 from spyns.data import SimulationData
+from spyns.model.heisenberg import TrialFlip
 import spyns
 
 
 def step(data: SimulationData) -> None:
-    """Update system state of Ising model using the Metropolis algorithm.
+    """Update system state of the Heisenberg model using the Metropolis algorithm.
 
     :param data: Data container for the simulation.
     """
     site_index: int = spyns.algorithms.metropolis.base.pick_site(
         number_sites=data.lookup_tables.number_sites
     )
-    energy_difference: float = spyns.model.ising.flip(
+    trial_flip: TrialFlip = spyns.model.heisenberg.flip(
         site_index=site_index,
         data=data,
     )
     accept_state: bool = spyns.algorithms.metropolis.base.accept_or_reject(
         temperature=data.parameters.temperature,
-        energy_difference=energy_difference,
+        energy_difference=trial_flip.energy_difference,
     )
     if accept_state:
-        spyns.model.ising.keep_flip_and_update_state(
+        spyns.model.heisenberg.keep_flip_and_update_state(
             data=data,
             site_index=site_index,
-            energy_difference=energy_difference,
+            trial_flip=trial_flip,
         )
 
 
@@ -35,7 +36,7 @@ def sweep(
     sweep_index: int,
     equilibration_run: bool,
 ) -> None:
-    """Sweep the Ising lattice and take a sample if required.
+    """Sweep the Heisenberg lattice and take a sample if required.
 
     :param data: Data container for the simulation.
     :param sweep_index: Sweep index for the simulation.
