@@ -5,7 +5,6 @@ from typing import Tuple
 import numpy as np
 
 from spyns.data import SimulationData
-import spyns
 
 
 def sample_random_state(number_sites: int) -> np.ndarray:
@@ -21,7 +20,7 @@ def flip(
     site_index: int,
     data: SimulationData,
 ) -> float:
-    """Compute the change in energy for a trial spin flip.
+    """Compute the change in energy for a trial spin flip for Ising model.
 
     :param site_index: Perform trial spin flip on site specified by the index.
     :param data: Data container for the simulation.
@@ -49,23 +48,23 @@ def keep_flip_and_update_state(
     sublattice_index: int = data.lookup_tables.sublattice_table[site_index]
 
     data.state[site_index] *= -1
-    magnetization_change = 2 * data.state[site_index]
+    spin_vector_change = 2 * data.state[site_index]
 
     data.estimators.energy += energy_difference
-    data.estimators.magnetization[sublattice_index] += magnetization_change
+    data.estimators.spin_vector[sublattice_index] += spin_vector_change
 
 
 def save_full_state(data: SimulationData) -> None:
-    """Compute the total energy and total magnetization estimators for the lattice.
+    """Compute the total energy and total magnetization estimators for the Ising model.
 
     :param data: Data container for the simulation.
     """
     data.estimators.energy = compute_total_energy(data=data)
-    data.estimators.magnetization[:] = compute_sublattice_magnetization(data=data)
+    data.estimators.spin_vector[:, :] = sum_spin_vectors_within_sublattices(data=data)
 
 
 def compute_total_energy(data: SimulationData) -> float:
-    """Compute the total energy estimator for the lattice.
+    """Compute the total energy estimator for the Ising model.
 
     :param data: Data container for the simulation.
     :return: Total energy of the simulation state.
@@ -81,19 +80,19 @@ def compute_total_energy(data: SimulationData) -> float:
     return total_energy / 2.0
 
 
-def compute_sublattice_magnetization(data: SimulationData) -> np.ndarray:
-    """Compute the total magnetization estimator for the lattice.
+def sum_spin_vectors_within_sublattices(data: SimulationData) -> np.ndarray:
+    """Sum the spin vectors within each sublattice.
 
     :param data: Data container for the simulation.
-    :return: Total magnetization of the simulation state.
+    :return: Array of summed spin vectors grouped by sublattice.
     """
     sublattice_indices: np.ndarray = data.lookup_tables.sublattice_table
-    magnetization: np.ndarray = np.zeros(shape=data.lookup_tables.number_sublattices)
+    spin_vector: np.ndarray = np.zeros(shape=(data.lookup_tables.number_sublattices, 1))
 
     for sublattice in range(data.lookup_tables.number_sublattices):
-        magnetization[sublattice] = data.state[sublattice_indices == sublattice].sum()
+        spin_vector[sublattice, 0] = data.state[sublattice_indices == sublattice].sum()
 
-    return magnetization
+    return spin_vector
 
 
 def compute_site_energy(
@@ -108,10 +107,35 @@ def compute_site_energy(
     """
     site_spin: float = data.state[site_index]
     neighbor_states: Tuple[np.ndarray, np.ndarray] = \
-        spyns.model.base.lookup_neighbor_states(
+        lookup_neighbor_states(
             site_index=site_index,
             data=data,
         )
     energy: float = np.sum(neighbor_states[1] * site_spin * neighbor_states[0])
 
     return energy
+
+
+def lookup_neighbor_states(
+    site_index: int,
+    data: SimulationData,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Get the states and interaction parameters of a site's neighbors.
+
+    :param site_index: Site index whose neighbor states you want to query.
+    :param data: Data container for the simulation.
+    :return: Tuple containing the site's neighbor's states and interaction
+        parameters.
+    """
+    neighbors_count: int = data.lookup_tables.neighbors_count[site_index]
+    lookup_start: int = data.lookup_tables.neighbors_lookup_index[site_index]
+    lookup_end: int = lookup_start + neighbors_count
+
+    neighbor_indices: np.ndarray = \
+        data.lookup_tables.neighbors_table[lookup_start:lookup_end]
+
+    neighbors_states: np.ndarray = data.state[neighbor_indices]
+    interaction_parameters: np.ndarray = \
+        data.lookup_tables.interaction_parameters_table[lookup_start:lookup_end]
+
+    return (neighbors_states, interaction_parameters)

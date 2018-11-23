@@ -13,10 +13,9 @@ def update_running_average(
     estimator_mean_name: str,
     power: int,
 ) -> float:
-    """Update estimator mean using simple moving average algorithm.
+    """Update estimator mean using a simple moving average algorithm.
 
     :param data: Data container for the simulation.
-    :param state: Sampled value of estimator.
     :param estimator_sample_name: Name for sampled value of estimator within estimators
         container.
     :param estimator_mean_name: Name for mean value of estimator within estimators
@@ -72,13 +71,19 @@ def update_trace(
     data: SimulationData,
     sweep_index: int,
 ) -> None:
-    """Add estimators sample to the simulation trace.
+    """Save estimators samples and running averages to the simulation trace.
 
     :param data: Data container for the simulation.
     :param sweep_index: Sweep index for the simulation.
     """
     number_sites: int = data.lookup_tables.number_sites
 
+    data.trace.energy[sweep_index] = \
+        data.estimators.energy / number_sites
+    data.trace.spin_vector[sweep_index] = \
+        data.estimators.spin_vector / number_sites
+    data.trace.magnetization[sweep_index] = \
+        data.estimators.magnetization / number_sites
     data.trace.energy_1st_moment[sweep_index] = \
         data.estimators.energy_1st_moment / number_sites
     data.trace.energy_2nd_moment[sweep_index] = \
