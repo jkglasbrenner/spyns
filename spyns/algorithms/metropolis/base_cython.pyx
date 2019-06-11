@@ -1,43 +1,50 @@
-# -*- coding: utf-8 -*-
+from libc.math cimport exp
+from spyns.data_cython cimport SimulationHeisenbergData_t
 
-import numpy as np
+import cython
 
 
-def pick_site(number_sites: int) -> int:
+cdef long pick_site(SimulationHeisenbergData_t data):
     """Pick a lattice site at random for the metropolis algorithm.
 
     :param number_sites: Number of sites in the lattice.
     :return: Index for randomly chosen site.
     """
-    site_index: int = np.random.randint(low=0, high=number_sites)
+    cdef long site_index = data.random_number_generator.randint()
 
     return site_index
 
 
-def accept_or_reject(temperature: float, energy_difference: float) -> bool:
+cdef bint accept_or_reject(double temperature, double energy_difference,
+                           SimulationHeisenbergData_t data):
     """Accept or reject trial flip using the Metropolis algorithm.
 
     :param temperature: Simulation temperature.
     :param energy_difference: Energy difference for the trial spin flip.
     :return: Boolean specifying if trial flip was accepted or not.
     """
-    accept: bool = True
+    cdef double acceptance_probability
+    cdef double random_number
+
+    cdef bint accept = True
 
     if energy_difference >= 0:
-        acceptance_probability: float = proposal_distribution(
+        acceptance_probability = proposal_distribution(
             energy_difference=energy_difference, temperature=temperature
         )
-        random_number: float = np.random.uniform()
+        random_number = data.random_number_generator.uniform()
         accept = random_number <= acceptance_probability
 
     return accept
 
 
-def proposal_distribution(energy_difference: float, temperature: float) -> float:
+cdef double proposal_distribution(double energy_difference, double temperature):
     """Compute proposal distribution for energy difference and simulation temperature.
 
     :param energy_difference: Energy difference for the trial sample.
     :param temperature: Temperature of the simulation.
     :return: Probability of accepting trial sample.
     """
-    return np.exp(-energy_difference / temperature)
+    cdef double acceptance_probability = exp(-energy_difference / temperature)
+
+    return acceptance_probability

@@ -7,10 +7,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-ScalingMatrix = \
-    Tuple[Tuple[int, int, int],
-          Tuple[int, int, int],
-          Tuple[int, int, int]]
+ScalingMatrix = Tuple[Tuple[int, int, int], Tuple[int, int, int], Tuple[int, int, int]]
 
 
 @dataclass(frozen=True)
@@ -20,21 +17,13 @@ class StructureParameters(object):
     spacegroup: int
     species: List[str]
     coordinates: List[List[float]]
-    __slots__ = [
-        "abc",
-        "ang",
-        "spacegroup",
-        "species",
-        "coordinates",
-    ]
+    __slots__ = ["abc", "ang", "spacegroup", "species", "coordinates"]
 
 
 @dataclass(frozen=True)
 class StructureFile(object):
     path: str
-    __slots__ = [
-        "path",
-    ]
+    __slots__ = ["path"]
 
 
 @dataclass(frozen=True)
@@ -46,7 +35,7 @@ class SimulationParameters(object):
     sweeps: int
     equilibration_sweeps: int
     sample_interval: int
-    temperature: float
+    temperature: Optional[float]
     __slots__ = [
         "seed",
         "mode",
@@ -66,7 +55,7 @@ class LookupTables(object):
     neighbors_table: np.ndarray
     neighbors_count: np.ndarray
     neighbors_lookup_index: np.ndarray
-    interaction_parameters_table: np.ndarray
+    interaction_parameters_table: Optional[np.ndarray]
     number_sites: int
     number_sublattices: int
 
@@ -76,41 +65,16 @@ class HeisenbergState(object):
     x: np.ndarray
     y: np.ndarray
     z: np.ndarray
-    __slots__ = [
-        "x",
-        "y",
-        "z",
-    ]
+    __slots__ = ["x", "y", "z"]
 
 
 @dataclass
 class Estimators(object):
-    number_samples: int
-    energy: float
-    energy_1st_moment: float
-    energy_2nd_moment: float
-    energy_3rd_moment: float
-    energy_4th_moment: float
+    number_samples: np.ndarray
+    energy: np.ndarray
     spin_vector: np.ndarray
     magnetization: np.ndarray
-    magnetization_1st_moment: np.ndarray
-    magnetization_2nd_moment: np.ndarray
-    magnetization_3rd_moment: np.ndarray
-    magnetization_4th_moment: np.ndarray
-    __slots__ = [
-        "number_samples",
-        "energy",
-        "energy_1st_moment",
-        "energy_2nd_moment",
-        "energy_3rd_moment",
-        "energy_4th_moment",
-        "spin_vector",
-        "magnetization",
-        "magnetization_1st_moment",
-        "magnetization_2nd_moment",
-        "magnetization_3rd_moment",
-        "magnetization_4th_moment",
-    ]
+    __slots__ = ["number_samples", "energy", "spin_vector", "magnetization"]
 
 
 @dataclass
@@ -119,28 +83,7 @@ class SimulationTrace(object):
     energy: np.ndarray
     spin_vector: np.ndarray
     magnetization: np.ndarray
-    energy_1st_moment: np.ndarray
-    energy_2nd_moment: np.ndarray
-    energy_3rd_moment: np.ndarray
-    energy_4th_moment: np.ndarray
-    magnetization_1st_moment: np.ndarray
-    magnetization_2nd_moment: np.ndarray
-    magnetization_3rd_moment: np.ndarray
-    magnetization_4th_moment: np.ndarray
-    __slots__ = [
-        "sweep",
-        "energy",
-        "spin_vector",
-        "magnetization",
-        "energy_1st_moment",
-        "energy_2nd_moment",
-        "energy_3rd_moment",
-        "energy_4th_moment",
-        "magnetization_1st_moment",
-        "magnetization_2nd_moment",
-        "magnetization_3rd_moment",
-        "magnetization_4th_moment",
-    ]
+    __slots__ = ["sweep", "energy", "spin_vector", "magnetization"]
 
 
 @dataclass
@@ -176,7 +119,7 @@ def setup_containers(
     """
     spin_components: int = 1
 
-    if parameters.mode.strip().lower() == "heisenberg":
+    if parameters.mode.strip().lower() in ["heisenberg", "heisenberg_cython"]:
         spin_components = 3
 
     spin_vector_estimator_shape: Tuple[int, int] = (
@@ -188,6 +131,12 @@ def setup_containers(
         lattice.number_sublattices,
         spin_components,
     )
+
+    interaction_parameters_table: Optional[np.ndarray] = None
+
+    if parameters.mode.strip().lower() in ["ising", "heisenberg", "heisenberg_cython"]:
+        interaction_parameters_table = lattice.interaction_parameters_table
+
     return SimulationData(
         parameters=parameters,
         lookup_tables=LookupTables(
@@ -196,38 +145,22 @@ def setup_containers(
             neighbors_table=lattice.neighbors_table,
             neighbors_count=lattice.neighbors_count,
             neighbors_lookup_index=lattice.neighbors_lookup_index,
-            interaction_parameters_table=lattice.interaction_parameters_table,
+            interaction_parameters_table=interaction_parameters_table,
             number_sites=lattice.number_sites,
             number_sublattices=lattice.number_sublattices,
         ),
         state=state,
         trace=SimulationTrace(
-            np.arange(start=1, stop=parameters.sweeps + 1),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=spin_vector_trace_shape),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=parameters.sweeps),
-            np.zeros(shape=parameters.sweeps),
+            np.arange(start=1, stop=parameters.sweeps + 1, dtype=np.int),
+            np.zeros(shape=parameters.sweeps, dtype=np.float),
+            np.zeros(shape=spin_vector_trace_shape, dtype=np.float),
+            np.zeros(shape=parameters.sweeps, dtype=np.float),
         ),
         estimators=Estimators(
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            np.zeros(shape=spin_vector_estimator_shape),
-            0,
-            0,
-            0,
-            0,
-            0,
+            np.zeros(shape=1, dtype=np.int),
+            np.zeros(shape=1, dtype=np.float),
+            np.zeros(shape=spin_vector_estimator_shape, dtype=np.float),
+            np.zeros(shape=1, dtype=np.float),
         ),
         data_frame=None,
     )
@@ -240,19 +173,11 @@ def make_trace_data_frame(data: SimulationData) -> None:
     """
     trace: Dict[str, np.ndarray] = {
         "sweep": data.trace.sweep,
-        "<E**1>": data.trace.energy_1st_moment,
-        "<E**2>": data.trace.energy_2nd_moment,
-        "<E**3>": data.trace.energy_3rd_moment,
-        "<E**4>": data.trace.energy_4th_moment,
-        "<M**1>": data.trace.magnetization_1st_moment,
-        "<M**2>": data.trace.magnetization_2nd_moment,
-        "<M**3>": data.trace.magnetization_3rd_moment,
-        "<M**4>": data.trace.magnetization_4th_moment,
         "E": data.trace.energy,
         "M": data.trace.magnetization,
     }
 
-    if data.parameters.mode.strip().lower() == "ising":
+    if data.parameters.mode.strip().lower() in ["ising", "voter"]:
         for sublattice in range(data.lookup_tables.number_sublattices):
             trace[f"S{sublattice}"] = data.trace.spin_vector[:, sublattice, 0]
 
@@ -262,8 +187,8 @@ def make_trace_data_frame(data: SimulationData) -> None:
             trace[f"S{sublattice}y"] = data.trace.spin_vector[:, sublattice, 1]
             trace[f"S{sublattice}z"] = data.trace.spin_vector[:, sublattice, 2]
             trace[f"theta{sublattice}"] = np.arctan(
-                (trace[f"S{sublattice}x"]**2 + trace[f"S{sublattice}y"]**2) /
-                trace[f"S{sublattice}z"]
+                (trace[f"S{sublattice}x"] ** 2 + trace[f"S{sublattice}y"] ** 2)
+                / trace[f"S{sublattice}z"]
             )
             trace[f"phi{sublattice}"] = np.arctan(
                 trace[f"S{sublattice}y"] / trace[f"S{sublattice}x"]
@@ -290,7 +215,7 @@ def dump_state_snapshot_to_disk(data: SimulationData, sweep_index: int) -> None:
     components: Optional[List[str]] = []
     snapshot: List[Union[int, float]] = [sweep_index]
 
-    if data.parameters.mode.strip().lower() == "ising":
+    if data.parameters.mode.strip().lower() in ["ising", "voter"]:
         components.extend([""])
         snapshot += data.state.tolist()
 
@@ -302,14 +227,15 @@ def dump_state_snapshot_to_disk(data: SimulationData, sweep_index: int) -> None:
 
     if sweep_index == 1:
         fieldnames: List[str] = [f"sweep"] + [
-            f"site{site_index}{component}" for component in components
+            f"site{site_index}{component}"
+            for component in components
             for site_index in range(data.lookup_tables.number_sites)
         ]
 
-        with open(data.parameters.snapshot_filepath, "w", newline='') as csvfile:
+        with open(data.parameters.snapshot_filepath, "w", newline="") as csvfile:
             dictwriter = csv.DictWriter(csvfile, fieldnames=fieldnames)
             dictwriter.writeheader()
 
-    with open(data.parameters.snapshot_filepath, "a", newline='') as csvfile:
+    with open(data.parameters.snapshot_filepath, "a", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(snapshot)

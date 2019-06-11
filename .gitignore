@@ -4,6 +4,8 @@
 # BEGIN ignore project files
 # ---------------------------
 
+*.html
+
 # ---------------------------
 # BEGIN ignore basic files
 # ---------------------------
@@ -337,6 +339,9 @@ sympy-plots-for-*.tex/
 # BEGIN ignore language files
 # ---------------------------
 
+# cython
+*_cython.html
+
 # python
 *$py.class
 *.cover
@@ -353,6 +358,7 @@ local_settings.py
 nosetests.xml
 pip-log.txt
 pip-delete-this-directory.txt
+.mypy_cache/
 *.egg-info/
 __pycache__/
 develop-eggs/
@@ -362,6 +368,7 @@ eggs/
 env.bak/
 htmlcov/
 instance/
+pip-wheel-metadata/
 site/
 target/
 venv/
@@ -381,17 +388,15 @@ vignettes/*.pdf
 # ---------------------------
 
 # track these files, if they exist
+!.github/
+!.gitlab/
 !.editorconfig
 !.env.example
 !.flake8
 !.gitattributes
 !.gitignore
-!.github/
-!.gitlab/
+!.gitkeep
+!.pre-commit-config.yaml
 !.readthedocs.yml
 !.style.yapf
 !.travis.yml
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json

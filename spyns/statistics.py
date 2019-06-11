@@ -1,102 +1,112 @@
 # -*- coding: utf-8 -*-
 
-from typing import Iterable, List, Union
+from typing import List
 
 import numpy as np
+import pandas as pd
 
 from spyns.data import SimulationData
 
 
-def update_running_average(
-    data: SimulationData,
-    estimator_sample_name: str,
-    estimator_mean_name: str,
-    power: int,
-) -> float:
-    """Update estimator mean using a simple moving average algorithm.
+def compute_running_average(trace_df: pd.DataFrame, estimator_name: str) -> None:
+    """Compute running average for a series of estimator samples.
 
-    :param data: Data container for the simulation.
-    :param estimator_sample_name: Name for sampled value of estimator within estimators
-        container.
-    :param estimator_mean_name: Name for mean value of estimator within estimators
-        container.
-    :param power: Estimator moment.
-    :return: Updated estimator mean.
+    :param trace_df: Trace history data frame of estimator samples.
+    :param estimator_name: Compute running average of this estimator. 
     """
-    estimator_sample: Union[float, np.ndarray] = getattr(
-        data.estimators, estimator_sample_name
-    )
-    estimator_mean: Union[float, np.ndarray] = getattr(
-        data.estimators, estimator_mean_name
-    )
-    return ((estimator_sample**power - estimator_mean) /
-            (data.estimators.number_samples + 1))
+    trace_df[f"<{estimator_name}>"] = trace_df[estimator_name].expanding().mean()
 
 
-def update_estimators(data: SimulationData) -> None:
-    """Update estimator running averages with new sample.
-
-    :param data: Data container for the simulation.
-    :param number_samples: Number of samples currently in mean.
-    """
-    estimator_means_list: List[str] = ([
-        f"{parameter}_{moment}_moment" for parameter in ["energy", "magnetization"]
-        for moment in ["1st", "2nd", "3rd", "4th"]
-    ])
-    estimator_samples_list: List[str] = 4 * ["energy"] + 4 * ["magnetization"]
-    powers_list: List[int] = 2 * list(range(1, 5))
-    estimators_zip: Iterable = \
-        zip(estimator_means_list, estimator_samples_list, powers_list)
-
-    for estimator_mean_name, estimator_sample_name, power in estimators_zip:
-        estimator_mean: Union[float, np.ndarray] = getattr(
-            data.estimators,
-            estimator_mean_name,
-        )
-        setattr(
-            data.estimators,
-            estimator_mean_name,
-            estimator_mean + update_running_average(
-                data=data,
-                estimator_sample_name=estimator_sample_name,
-                estimator_mean_name=estimator_mean_name,
-                power=power,
-            ),
-        )
-
-    data.estimators.number_samples += 1
-
-
-def update_trace(
-    data: SimulationData,
-    sweep_index: int,
+def compute_estimator_moments(
+    trace_df: pd.DataFrame, estimator_name: str, max_power: int = 4
 ) -> None:
-    """Save estimators samples and running averages to the simulation trace.
+    for power in range(1, max_power + 1):
+        trace_df[f"{estimator_name}**{power}"] = trace_df[estimator_name] ** power
+
+
+def compute_estimator_fluctuations(
+    trace_df: pd.DataFrame,
+    fluctuation_name: str,
+    estimator_name: str,
+    number_sites: int,
+    coefficient: float,
+) -> None:
+    trace_df[fluctuation_name] = (
+        coefficient
+        * (trace_df[f"<{estimator_name}**2>"] - trace_df[f"<{estimator_name}**1>"] ** 2)
+        / number_sites
+    )
+
+
+def compute_binder_parameter(trace_df: pd.DataFrame, estimator_name: str) -> None:
+    trace_df[f"Binder_{estimator_name}"] = 1 - (1 / 3) * (
+        trace_df[f"<{estimator_name}**4>"] / trace_df[f"<{estimator_name}**2>"] ** 2
+    )
+
+
+def compute_ising_afm_order_parameter(
+    trace_df: pd.DataFrame,
+    order_parameter_name: str,
+    sublattices1: List[str],
+    sublattices2: List[str],
+    number_sites: int,
+) -> None:
+    spin_vector_df = trace_df.copy()
+    spin_vector_df["spin1"] = 0.0
+    spin_vector_df["spin2"] = 0.0
+
+    for sublattice in sublattices1:
+        spin_vector_df["spin1"] += spin_vector_df[f"S{sublattice}"]
+
+    for sublattice in sublattices2:
+        spin_vector_df["spin2"] += spin_vector_df[f"S{sublattice}"]
+
+    trace_df[order_parameter_name] = (
+        np.abs(spin_vector_df["spin2"] - spin_vector_df["spin1"]) / number_sites
+    )
+
+
+def compute_heisenberg_afm_order_parameter(
+    trace_df: pd.DataFrame,
+    order_parameter_name: str,
+    sublattices1: List[str],
+    sublattices2: List[str],
+    number_sites: int,
+) -> None:
+    spin_vector_df = trace_df.copy()
+    spin_vector_df["spin1x"] = 0.0
+    spin_vector_df["spin1y"] = 0.0
+    spin_vector_df["spin1z"] = 0.0
+    spin_vector_df["spin2x"] = 0.0
+    spin_vector_df["spin2y"] = 0.0
+    spin_vector_df["spin2z"] = 0.0
+
+    for sublattice in sublattices1:
+        spin_vector_df["spin1x"] += spin_vector_df[f"S{sublattice}x"]
+        spin_vector_df["spin1y"] += spin_vector_df[f"S{sublattice}y"]
+        spin_vector_df["spin1z"] += spin_vector_df[f"S{sublattice}z"]
+
+    for sublattice in sublattices2:
+        spin_vector_df["spin2x"] += spin_vector_df[f"S{sublattice}x"]
+        spin_vector_df["spin2y"] += spin_vector_df[f"S{sublattice}y"]
+        spin_vector_df["spin2z"] += spin_vector_df[f"S{sublattice}z"]
+
+    trace_df[order_parameter_name] = (
+        np.linalg.norm(
+            spin_vector_df[["spin1x", "spin1y", "spin1z"]].values
+            - spin_vector_df[["spin2x", "spin2y", "spin2z"]].values,
+            axis=1,
+        )
+        / number_sites
+    )
+
+
+def update_trace(data: SimulationData, sweep_index: int) -> None:
+    """Save estimators samples in the simulation trace.
 
     :param data: Data container for the simulation.
     :param sweep_index: Sweep index for the simulation.
     """
-    number_sites: int = data.lookup_tables.number_sites
-
-    data.trace.energy[sweep_index] = \
-        data.estimators.energy / number_sites
-    data.trace.spin_vector[sweep_index] = \
-        data.estimators.spin_vector / number_sites
-    data.trace.magnetization[sweep_index] = \
-        data.estimators.magnetization / number_sites
-    data.trace.energy_1st_moment[sweep_index] = \
-        data.estimators.energy_1st_moment / number_sites
-    data.trace.energy_2nd_moment[sweep_index] = \
-        data.estimators.energy_2nd_moment / number_sites
-    data.trace.energy_3rd_moment[sweep_index] = \
-        data.estimators.energy_3rd_moment / number_sites
-    data.trace.energy_4th_moment[sweep_index] = \
-        data.estimators.energy_4th_moment / number_sites
-    data.trace.magnetization_1st_moment[sweep_index] = \
-        data.estimators.magnetization_1st_moment / number_sites
-    data.trace.magnetization_2nd_moment[sweep_index] = \
-        data.estimators.magnetization_2nd_moment / number_sites
-    data.trace.magnetization_3rd_moment[sweep_index] = \
-        data.estimators.magnetization_3rd_moment / number_sites
-    data.trace.magnetization_4th_moment[sweep_index] = \
-        data.estimators.magnetization_4th_moment / number_sites
+    data.trace.energy[sweep_index] = data.estimators.energy[0]
+    data.trace.spin_vector[sweep_index] = data.estimators.spin_vector
+    data.trace.magnetization[sweep_index] = data.estimators.magnetization[0]

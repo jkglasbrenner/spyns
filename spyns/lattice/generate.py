@@ -20,8 +20,7 @@ def from_parameters(structure_parameters: StructureParameters) -> pmg.Structure:
     :return: A pymatgen ``Structure`` object.
     """
     cell_lattice: pmg.Lattice = pmg.Lattice.from_lengths_and_angles(
-        abc=structure_parameters.abc,
-        ang=structure_parameters.ang,
+        abc=structure_parameters.abc, ang=structure_parameters.ang
     )
 
     cell_structure: pmg.Structure = pmg.Structure.from_spacegroup(
@@ -43,18 +42,14 @@ def from_file(structure_file: spyns.data.StructureFile) -> pmg.Structure:
     :return: A pymatgen ``Structure`` object.
     """
     cell_structure: pmg.Structure = pmg.Structure.from_file(
-        filename=structure_file.path,
-        primitive=False,
-        sort=False,
-        merge_tol=0.01,
+        filename=structure_file.path, primitive=False, sort=False, merge_tol=0.01
     )
 
     return cell_structure
 
 
 def label_subspecies(
-    structure: pmg.Structure,
-    subspecies_labels: Dict[int, str] = {},
+    structure: pmg.Structure, subspecies_labels: Dict[int, str] = {}
 ) -> pmg.Structure:
     """Groups sites together into sublattices using subspecies labels.
 
@@ -66,21 +61,18 @@ def label_subspecies(
     cell_structure: pmg.Structure = structure.copy()
 
     site_properties_subspecies: List[str] = get_subspecies_labels(
-        cell_structure=cell_structure,
-        subspecies_labels=subspecies_labels,
+        cell_structure=cell_structure, subspecies_labels=subspecies_labels
     )
 
     cell_structure.add_site_property(
-        property_name="subspecie",
-        values=site_properties_subspecies,
+        property_name="subspecie", values=site_properties_subspecies
     )
 
     return cell_structure
 
 
 def get_subspecies_labels(
-    cell_structure: pmg.Structure,
-    subspecies_labels: Dict[int, str],
+    cell_structure: pmg.Structure, subspecies_labels: Dict[int, str]
 ) -> List[Optional[str]]:
     """Builds a list of subspecies labels using the provided dictionary. Site indices not
     found as a key in the dictionary are labeled with the atomic species name.
@@ -143,8 +135,7 @@ def make_supercell(
 
 
 def add_subspecie_labels_if_missing(
-    cell_structure: pmg.Structure,
-    subspecies_labels: Dict[int, str] = {},
+    cell_structure: pmg.Structure, subspecies_labels: Dict[int, str] = {}
 ) -> pmg.Structure:
     """Makes a copy of ``cell_structure`` and then checks if ``cell_structure`` has
     the subspecie site property. If it does, then return the copy as-is, otherwise
@@ -161,8 +152,7 @@ def add_subspecie_labels_if_missing(
 
     if "subspecie" not in structure.site_properties:
         structure = label_subspecies(
-            structure=structure,
-            subspecies_labels=subspecies_labels,
+            structure=structure, subspecies_labels=subspecies_labels
         )
 
     return structure

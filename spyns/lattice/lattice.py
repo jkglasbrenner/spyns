@@ -161,8 +161,9 @@ class Lattice(object):
             )
 
         try:
-            self._sublattice_pairs_interaction_df = self._sublattice_pairs_df \
-                .merge(interaction_df, on=merge_columns)
+            self._sublattice_pairs_interaction_df = self._sublattice_pairs_df.merge(
+                interaction_df, on=merge_columns
+            )
 
         except KeyError:
             raise KeyError(
@@ -175,11 +176,9 @@ class Lattice(object):
 
     def _cache_neighbor_data_frames(self) -> None:
         """Cache data frame of pairs as a function of distance and sublattice."""
-        neighbors_df: NeighborsDataFrames = \
-            spyns.lattice.neighborhood.build_neighbors_data_frames(
-                structure=self._structure,
-                r=self._r,
-            )
+        neighbors_df: NeighborsDataFrames = spyns.lattice.neighborhood.build_neighbors_data_frames(
+            structure=self._structure, r=self._r
+        )
         self._neighbor_count_df = neighbors_df.neighbor_count
         self._sublattice_pairs_df = neighbors_df.sublattice_pairs
 
@@ -187,22 +186,13 @@ class Lattice(object):
         """Build and save neighbor tables for lattice."""
         neighbor_count_df: pd.DataFrame = self.neighbors_data_frame
 
-        neighbor_table: List[int] = neighbor_count_df \
-            .loc[:, "j"] \
-            .values
-        neighbor_count_list: List[int] = neighbor_count_df \
-            .loc[:, ["i", "n"]] \
-            .groupby("i") \
-            .sum() \
-            .values \
-            .flatten()
-        neighbor_table_lookup_index: List[int] = neighbor_count_df \
-            .reset_index() \
-            .loc[:, ["i", "index"]] \
-            .groupby("i") \
-            .first() \
-            .values \
-            .flatten()
+        neighbor_table: List[int] = neighbor_count_df.loc[:, "j"].values
+        neighbor_count_list: List[int] = neighbor_count_df.loc[:, ["i", "n"]].groupby(
+            "i"
+        ).sum().values.flatten()
+        neighbor_table_lookup_index: List[int] = neighbor_count_df.reset_index().loc[
+            :, ["i", "index"]
+        ].groupby("i").first().values.flatten()
 
         if neighbor_count_list.sum() == len(neighbor_table):
             self._neighbor_table: np.ndarray = neighbor_table
@@ -217,23 +207,20 @@ class Lattice(object):
 
     def _build_and_cache_sublattice_table(self) -> None:
         """Build and save sublattice tables for lattice."""
-        structure: pmg.Structure = \
-            spyns.lattice.generate.add_subspecie_labels_if_missing(
-                cell_structure=self._structure,
-            )
+        structure: pmg.Structure = spyns.lattice.generate.add_subspecie_labels_if_missing(
+            cell_structure=self._structure
+        )
 
-        sublattice_table, distinct_sublattices = \
-            self._factorize_sublattice_labels(
-                sublattice_labels=structure.site_properties["subspecie"]
-            )
+        sublattice_table, distinct_sublattices = self._factorize_sublattice_labels(
+            sublattice_labels=structure.site_properties["subspecie"]
+        )
 
         self._sublattice_table: np.ndarray = sublattice_table
         self._sublattice_labels: np.ndarray = distinct_sublattices
         self._number_sublattices: int = len(distinct_sublattices.tolist())
 
     def _factorize_sublattice_labels(
-        self,
-        sublattice_labels: List[str],
+        self, sublattice_labels: List[str]
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Associate each unique sublattice label with an integer.
         
@@ -245,8 +232,7 @@ class Lattice(object):
         return pd.factorize(sublattice_labels)
 
     def _build_and_cache_interaction_table(
-        self,
-        interaction_parameters: List[float],
+        self, interaction_parameters: List[float]
     ) -> None:
         """Build and save interaction tables for a two-dimensional square lattice.
 
@@ -258,8 +244,10 @@ class Lattice(object):
         except AttributeError:
             raise AttributeError("Sublattice interactions not set.")
 
-        self._interaction_parameters_table: np.ndarray = self.neighbors_data_frame \
-            .merge(interaction_df) \
-            .sort_values(["i", "distance_bin", "j"]) \
-            .loc[:, "J_ij"] \
-            .values
+        self._interaction_parameters_table: np.ndarray = self.neighbors_data_frame.merge(
+            interaction_df
+        ).sort_values(
+            ["i", "distance_bin", "j"]
+        ).loc[
+            :, "J_ij"
+        ].values

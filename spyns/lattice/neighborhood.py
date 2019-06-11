@@ -20,8 +20,7 @@ class NeighborsDataFrames(NamedTuple):
 
 
 def build_neighbors_data_frames(
-    structure: pmg.Structure,
-    r: float,
+    structure: pmg.Structure, r: float
 ) -> NeighborsDataFrames:
     """Find neighbor and sublattice pairs in a structure within a cutoff distance.
 
@@ -38,29 +37,27 @@ def build_neighbors_data_frames(
             intervals.
     """
     cell_structure = spyns.lattice.generate.add_subspecie_labels_if_missing(
-        cell_structure=structure,
+        cell_structure=structure
     )
 
     neighbor_distances_df: pd.DataFrame = get_neighbor_distances_data_frame(
-        cell_structure=cell_structure,
-        r=r,
+        cell_structure=cell_structure, r=r
     )
 
-    distance_bins_df: pd.DataFrame = neighbor_distances_df \
-        .pipe(define_bins_to_group_and_sort_by_distance)
+    distance_bins_df: pd.DataFrame = neighbor_distances_df.pipe(
+        define_bins_to_group_and_sort_by_distance
+    )
 
-    neighbor_count_df: pd.DataFrame = neighbor_distances_df \
-        .pipe(group_site_index_pairs_by_distance,
-              distance_bins_df=distance_bins_df) \
-        .pipe(count_neighbors_within_distance_groups) \
-        .pipe(sort_neighbors_by_site_index_i)
+    neighbor_count_df: pd.DataFrame = neighbor_distances_df.pipe(
+        group_site_index_pairs_by_distance, distance_bins_df=distance_bins_df
+    ).pipe(count_neighbors_within_distance_groups).pipe(sort_neighbors_by_site_index_i)
 
-    sublattice_pairs_df: pd.DataFrame = neighbor_count_df \
-        .pipe(sort_and_rank_unique_sublattice_pairs)
+    sublattice_pairs_df: pd.DataFrame = neighbor_count_df.pipe(
+        sort_and_rank_unique_sublattice_pairs
+    )
 
     return NeighborsDataFrames(
-        neighbor_count=neighbor_count_df,
-        sublattice_pairs=sublattice_pairs_df,
+        neighbor_count=neighbor_count_df, sublattice_pairs=sublattice_pairs_df
     )
 
 
@@ -74,13 +71,17 @@ def sort_and_rank_unique_sublattice_pairs(data_frame: pd.DataFrame) -> pd.DataFr
     subspecies_columns = ["subspecies_i", "subspecies_j"]
     sublattice_columns = subspecies_columns + ["distance_bin"]
 
-    return data_frame \
-        .loc[:, sublattice_columns] \
-        .drop_duplicates(subset=sublattice_columns) \
-        .sort_values(sublattice_columns) \
-        .assign(subspecies_ij_distance_rank=lambda x: x.groupby(subspecies_columns)
-                                                       .cumcount()) \
+    return (
+        data_frame.loc[:, sublattice_columns]
+        .drop_duplicates(subset=sublattice_columns)
+        .sort_values(sublattice_columns)
+        .assign(
+            subspecies_ij_distance_rank=lambda x: x.groupby(
+                subspecies_columns
+            ).cumcount()
+        )
         .reset_index(drop=True)
+    )
 
 
 def sort_neighbors_by_site_index_i(neighbor_count_df: pd.DataFrame) -> pd.DataFrame:
@@ -92,9 +93,9 @@ def sort_neighbors_by_site_index_i(neighbor_count_df: pd.DataFrame) -> pd.DataFr
         pairs and separation distances sorted by site index i, then neighbor
         distances, then neighbor index j.
     """
-    return neighbor_count_df \
-        .sort_values(by=["i", "distance_bin", "j"]) \
-        .reset_index(drop=True)
+    return neighbor_count_df.sort_values(by=["i", "distance_bin", "j"]).reset_index(
+        drop=True
+    )
 
 
 def count_neighbors_within_distance_groups(
@@ -107,16 +108,17 @@ def count_neighbors_within_distance_groups(
     :return: A pandas ``DataFrame`` of neighbor counts aggregated over site-index pairs
         and separation distances.
     """
-    return grouped_distances \
-        .apply(lambda x: pd.to_numeric(arg=x["distance_ij"].count(),
-                                       downcast="integer")) \
-        .rename("n") \
+    return (
+        grouped_distances.apply(
+            lambda x: pd.to_numeric(arg=x["distance_ij"].count(), downcast="integer")
+        )
+        .rename("n")
         .reset_index()
+    )
 
 
 def group_site_index_pairs_by_distance(
-    neighbor_distances_df: pd.DataFrame,
-    distance_bins_df: pd.DataFrame,
+    neighbor_distances_df: pd.DataFrame, distance_bins_df: pd.DataFrame
 ) -> pd.core.groupby.DataFrameGroupBy:
     """Iterate over all sites, grouping by site-index pairs, subspecies pairs, and
     bin intervals.
@@ -128,12 +130,13 @@ def group_site_index_pairs_by_distance(
     :return: A data frame grouped over site-index pairs, subspecies pairs, and
         bin intervals.
     """
-    binned_distances: pd.Series = \
-        pd.cut(x=neighbor_distances_df["distance_ij"], bins=distance_bins_df.index) \
-          .rename("distance_bin")
+    binned_distances: pd.Series = pd.cut(
+        x=neighbor_distances_df["distance_ij"], bins=distance_bins_df.index
+    ).rename("distance_bin")
 
-    return neighbor_distances_df \
-        .groupby(["i", "j", "subspecies_i", "subspecies_j", binned_distances])
+    return neighbor_distances_df.groupby(
+        ["i", "j", "subspecies_i", "subspecies_j", binned_distances]
+    )
 
 
 def define_bins_to_group_and_sort_by_distance(
@@ -175,10 +178,9 @@ def find_unique_distances(distance_ij: pd.Series) -> np.ndarray:
         np.isclose(unique_floats[1:], unique_floats[:-1])
     )
 
-    return np.concatenate((
-        unique_floats[:1],
-        unique_floats[1:][next_distance_not_close],
-    ))
+    return np.concatenate(
+        (unique_floats[:1], unique_floats[1:][next_distance_not_close])
+    )
 
 
 def define_bin_intervals(unique_distances: np.ndarray) -> pd.IntervalIndex:
@@ -194,17 +196,18 @@ def define_bin_intervals(unique_distances: np.ndarray) -> pd.IntervalIndex:
     """
     bin_centers: np.ndarray = np.concatenate(([0], unique_distances))
 
-    bin_edges: np.ndarray = np.concatenate([
-        bin_centers[:-1] + (bin_centers[1:] - bin_centers[:-1]) / 2,
-        bin_centers[-1:] + (bin_centers[-1:] - bin_centers[-2:-1]) / 2,
-    ])
+    bin_edges: np.ndarray = np.concatenate(
+        [
+            bin_centers[:-1] + (bin_centers[1:] - bin_centers[:-1]) / 2,
+            bin_centers[-1:] + (bin_centers[-1:] - bin_centers[-2:-1]) / 2,
+        ]
+    )
 
     return pd.IntervalIndex.from_breaks(breaks=bin_edges)
 
 
 def get_neighbor_distances_data_frame(
-    cell_structure: pmg.Structure,
-    r: float,
+    cell_structure: pmg.Structure, r: float
 ) -> pd.DataFrame:
     """Get data frame of pairwise neighbor distances for each atom in the unit cell,
     out to a distance ``r``.
@@ -214,21 +217,18 @@ def get_neighbor_distances_data_frame(
     :return: A pandas ``DataFrame`` of pairwise neighbor distances.
     """
     all_neighbors: AllNeighborDistances = cell_structure.get_all_neighbors(
-        r=r,
-        include_index=True,
+        r=r, include_index=True
     )
 
     neighbor_distances: NeighborDistances = extract_neighbor_distance_data(
-        cell_structure=cell_structure,
-        all_neighbors=all_neighbors,
+        cell_structure=cell_structure, all_neighbors=all_neighbors
     )
 
     return pd.DataFrame(data=neighbor_distances)
 
 
 def extract_neighbor_distance_data(
-    cell_structure: pmg.Structure,
-    all_neighbors: AllNeighborDistances,
+    cell_structure: pmg.Structure, all_neighbors: AllNeighborDistances
 ) -> NeighborDistances:
     """Extracts the site indices, site species, and neighbor distances for each pair
     and stores it in a dictionary.
