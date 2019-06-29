@@ -6,21 +6,21 @@ channels:
   - conda-forge
 dependencies:
   - anaconda=2019.03=py37_0
-  - autopep8=1.4.4=py_0
-  - black=19.3b0=py_0
-  - enumlib=1.0.4=1
-  - flake8=3.7.7=py37_0
-  - pip=19.0.3=py37_0
-  - pre_commit=1.16.1=py37_0
-  - pydocstyle=3.0.0=py37_0
-  - pymatgen=2019.5.8=py37_0
-  - pytest-runner=4.4=py_0
-  - pytoml=0.1.20=py37_0
-  - sphinx-autodoc-typehints=1.6.0=py_0
+  - autopep8=1.4.4
+  - black=19.3b0
+  - enumlib=1.0.4
+  - flake8=3.7.7
+  - pip=19.0.3
+  - pre_commit=1.17.0
+  - pydocstyle=3.0.0
+  - pymatgen=2019.5.8
+  - pytest-runner=4.4
+  - pytoml=0.1.20
+  - sphinx-autodoc-typehints=1.6.0
   - sphinx_rtd_theme=0.4.3
   - pip:
     - -e .
     - entrypoints==0.3
     - flake8-bugbear==19.3.0
-    - mypy==0.701
+    - mypy==0.711
     - seed-isort-config==1.9.1

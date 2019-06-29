@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-from collections import OrderedDict
 import os
 import sys
+from collections import OrderedDict
 
 import setuptools
-
 
 USE_CYTHON = os.environ.get("USE_CYTHON", None)
 
@@ -20,7 +19,11 @@ release = "0.1.0"
 dependencies = ["numpy>=1.16.2", "pandas>=0.24.2", "pymatgen>=2019.5.8"]
 cmdclass = {}
 extras_dependencies = {
-    "docs": ["sphinx>=1.8.5", "sphinx-rtd-theme==0.4.3"],
+    "docs": [
+        "sphinx>=1.8.5",
+        "sphinx-rtd-theme==0.4.3",
+        "sphinx-autodoc-typehints==1.6.0",
+    ],
     "dev": [
         "autopep8==1.4.4",
         "black==19.3b0",
@@ -29,12 +32,11 @@ extras_dependencies = {
         "flake8-bugbear==19.3.0",
         "flake8==3.7.7",
         "ipython==7.4.0",
-        "mypy==0.701",
-        "pre-commit==1.16.1",
+        "mypy==0.710",
+        "pre-commit==1.17.0",
         "pydocstyle==3.0.0",
         "pytoml==0.1.20",
         "seed-isort-config==1.9.1",
-        "sphinx-autodoc-typehints==1.6.0",
     ],
 }
 tests_dependencies = (["pytest==4.3.1", "pytest-runner==4.4"],)
