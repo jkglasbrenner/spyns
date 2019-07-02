@@ -1,0 +1,23 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+AlignAfterOpenBracket: AlwaysBreak
+AlignTrailingComments: true
+AlwaysBreakAfterReturnType: None
+CommentPragmas: '^pragma'
+ColumnLimit: 90
+FixNamespaceComments: true
+IncludeCategories:
+  - Regex: '^<.*\.h>'
+    Priority: 1
+  - Regex: '^<.*'
+    Priority: 2
+  - Regex: '.*'
+    Priority: 3
+IndentCaseLabels: true
+IndentWidth: 2
+ReflowComments: true
+SpacesBeforeTrailingComments: 3
+Standard: Cpp11
+TabWidth: 2
+UseTab: Never

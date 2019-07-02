@@ -390,6 +390,8 @@ vignettes/*.pdf
 # track these files, if they exist
 !.github/
 !.gitlab/
+!spyns/lib/
+!.clang-format
 !.editorconfig
 !.env.example
 !.flake8

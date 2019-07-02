@@ -11,6 +11,12 @@ RM = rm
 COPY = cp
 FIND = find
 
+CLANG_FORMAT = clang-format
+CLANG_FORMAT_OPTS = -style=file -i
+
+CPP_SRC_FILES = \
+    spyns/lib/*.hpp
+
 CONDA = conda
 CONDA_ENV_FILE = environment.yml
 
@@ -38,6 +44,10 @@ CLEAN_FILES = build/ *_cache/ docs/_build/ dist/ .pytest_cache/ *.egg-info/
 
 define python_black
     $(BLACK) $(BLACK_OPTS) $(PY_SRC)
+endef
+
+define clang_format
+    $(CLANG_FORMAT) $(CLANG_FORMAT_OPTS) $(CPP_SRC_FILES)
 endef
 
 define cleanup
@@ -72,8 +82,9 @@ endef
 # COMMANDS                                                                      #
 #################################################################################
 
-## Reformat Python code with black
+## Reformat C++ code with clang-format and Python code with black
 beautify:
+	$(call clang_format)
 	$(call python_black)
 
 ## Build python project
